@@ -199,3 +199,19 @@
 - 扫码发送改为扫码页内部直接register，成功返回Device后进入原文件选择；不再弹自动IP连接框。超过250ms才显示内嵌进度，没有人为最短等待；扫码页零时长退出避免与文件选择进入动画叠加，错误留页重试/重扫，退出忽略迟到结果。
 - 修改：add_file_dialog、qr_scan_page、qr_connection_tab、send_tab_vm与对应测试。./init.sh及旧扫码基线通过；完整151项Flutter测试通过，flutter analyze无问题。布局覆盖macOS/Windows的640/1200/400宽度，连接覆盖快/慢/失败重试/连接中退出。ADB无设备，未做本轮手机真机动画验收。
 - 用户授权上传新版Windows构建。本轮提交将触发fork的Windows工作流；Android/macOS本地构建同步进行。新产物验证完成前保留旧包；用户AGENTS.md修改不纳入提交。
+
+
+### 2026-10-20 — 扫码过渡与2×2桌面布局：三平台发布及旧包清理完成
+
+- 功能 qr_polish-003 按本轮自动化/构建交付规则通过；源码提交 `25b25b618b9216b856a6ca9462fa89b9e0a687ed` 已上传 fork 分支 `feat/qr-device-discovery`。完整151项Flutter测试通过，静态分析无问题；用户AGENTS.md修改未提交。
+- Windows工作流 https://github.com/hotaoyousa/localsend/actions/runs/39387964307 成功，Windows任务13分52秒；EXE从该次工作流下载，ZIP完整性验证通过。更新中文Windows自行编译说明及新版下载入口。
+- macOS arm64 Release重新ad-hoc深度签名，严格校验通过；DMG/ZIP完整性通过。临时便携设置与55339端口实际启动，info返回别名及协议2.2；测试进程和临时设置已移除。Android arm64 Debug APK包名.debug、压缩完整性通过。
+- 已发布 https://github.com/hotaoyousa/localsend/releases/tag/qr-polish-20261020 ，标签绑定功能提交25b25b61。4个工件状态uploaded，服务端大小逐一与本地一致：APK198539247、DMG30542030、ZIP26675038、EXE18926791字节。
+- 本地可测试产物：
+  - `dist/qr-polish-20261020/LocalSend-1.18.2-qr-polish-android-arm64-debug.apk`
+  - `dist/qr-polish-20261020/LocalSend.app`
+  - `dist/qr-polish-20261020/LocalSend-1.18.2-qr-polish-macos-arm64.dmg`
+  - `dist/qr-polish-20261020/LocalSend-1.18.2-qr-polish-macos-arm64.zip`
+  - `dist/qr-polish-20261020/LocalSend-1.18.2-qr-polish-windows-x64.exe`
+- 新版校验后删除 `dist/qr-connection-20261020`、`dist/windows-last-available-20261020`，以及 app/build、独立macOS副本app/build和本轮Kotlin缓存；清理期间实测可用空间增加约15.62GiB。保留新包、源码、工具链与macOS本地Swift包配置；本次未删除GitHub历史Release。
+- 剩余验收：ADB无设备，手机实际动画观感和Android/macOS/Windows真实三设备文件落盘仍需安装新版实测；Windows未经本地实机启动验收，Mac未Apple公证、Windows未签名。未将既有真实三设备验收项标记passing。

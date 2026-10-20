@@ -148,7 +148,7 @@
       "priority": 1,
       "area": "qr_connection",
       "title": "桌面固定两列选择与扫码发送平滑过渡",
-      "status": "in_progress",
+      "status": "passing",
       "user_visible_behavior": "桌面添加文件固定文件/文件夹、文本/剪贴板两行两列；扫码发送原地连接，快速成功直接选文件，250毫秒后才显示进度。",
       "verification": [
         "macOS/Windows窄宽窗口固定2×2无溢出。",
@@ -156,9 +156,11 @@
         "生成并提供Android/macOS/Windows新版，验证后删除对应旧本地产物。"
       ],
       "evidence": [
-        "2026-10-20: ./init.sh和原扫码基线通过，完整151项Flutter测试通过，静态分析无问题；ADB无连接真机。"
+        "2026-10-20: ./init.sh和原扫码基线通过，完整151项Flutter测试通过，静态分析无问题；ADB无连接真机。",
+        "2026-10-20: Android arm64 Debug APK、macOS arm64 Release DMG/ZIP与Windows x64无签名EXE已构建并发布至 https://github.com/hotaoyousa/localsend/releases/tag/qr-polish-20261020 。Windows工作流39387964307成功（13分52秒）；四工件上传大小均与本地一致。macOS严格深度签名、ZIP/DMG和独立设置启动检查通过；APK/Windows下载ZIP完整性通过。",
+        "2026-10-20: 新版校验后删除旧本地Android/macOS/Windows产物及重复构建缓存，清理期间实测可用空间增加约15.62GiB。"
       ],
-      "notes": "三平台构建与上传正在进行；未声称完成手机真机动画或三设备文件收件验收。"
+      "notes": "本轮布局/连接自动化和三平台构建交付完成；无连接Android真机，手机实际动画观感及真实三设备收件仍需用户实机验收，不改变既有三设备功能的blocked状态。"
     }
   ]
 }

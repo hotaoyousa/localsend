@@ -1,6 +1,8 @@
 # 新版扫码连接：Windows 本地编译
 
-新版源码在 `feat/qr-device-discovery` 分支。包含独立「扫码连接」导航、手机扫码发送/接收，以及 A 发送、B 接收的双电脑连接流程。
+新版源码在 `feat/qr-device-discovery` 分支。包含独立「扫码连接」导航、手机扫码发送/接收，以及 A 发送、B 接收的双电脑连接流程。当前版本还包含桌面添加文件固定2×2排列、手机扫码发送原地连接和延后显示进度。
+
+预编译安装包：[扫码体验改进测试版](https://github.com/hotaoyousa/localsend/releases/tag/qr-polish-20261020)，包含本次 Windows x64 EXE。
 
 ## 准备环境
 
@@ -58,4 +60,4 @@ dist\qr-connection-20261020\LocalSend-1.18.2-qr-connection-windows-x64.zip
 3. 建立连接后，B 等待接收，A 自动进入添加文件界面，无需再次选择角色。
 4. 在 A 选择文件并发送，确认 B 实际收到内容。
 
-本次源码已通过 143 项 Flutter 测试与静态分析，Android/macOS 已构建；新版 Windows 仍需在 Windows 主机完成编译与真机收件验收。
+本次源码已通过 151 项 Flutter 测试与静态分析；Android/macOS 已构建，Windows x64 无签名安装程序已在 [GitHub Windows 工作流](https://github.com/hotaoyousa/localsend/actions/runs/39387964307) 编译成功。真实三设备文件收件仍需实机验收。
