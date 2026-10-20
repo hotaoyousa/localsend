@@ -824,7 +824,7 @@ class Translations$desktopPairing$zh_TW extends Translations$desktopPairing$en {
   @override
   String get failed => '連接未完成。請確認掃描兩台不同電腦，均執行此版本並開啟 QR 碼視窗，且網路允許直接連接，再重試未完成的一端。';
   @override
-  String invitation({required Object phone, required Object peer}) => '\$${phone} 請求將本機與 \$${peer} 連接。是否允許直接連接？';
+  String invitation({required Object phone, required Object peer}) => '${phone} 請求將本機與 ${peer} 連接。是否允許直接連接？';
 }
 
 // Path: receiveTab.infoBox

@@ -1038,9 +1038,9 @@ class Translations$desktopPairing$en {
   String get failed =>
       'Connection not completed. Check that you scanned two different computers, both run this version with their QR dialogs open, and their network allows direct connections. Then retry the unfinished side.';
 
-  /// en: '${phone} wants to connect this computer to ${peer}. Allow the direct connection?'
+  /// en: '{phone} wants to connect this computer to {peer}. Allow the direct connection?'
   String invitation({required Object phone, required Object peer}) =>
-      '\$${phone} wants to connect this computer to \$${peer}. Allow the direct connection?';
+      '${phone} wants to connect this computer to ${peer}. Allow the direct connection?';
 }
 
 // Path: receiveTab.infoBox

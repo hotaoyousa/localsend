@@ -602,6 +602,6 @@
     "connected": "Connection confirmed",
     "done": "Both computers are connected. Close their QR dialogs and select the other computer on the Send tab to transfer files.",
     "failed": "Connection not completed. Check that you scanned two different computers, both run this version with their QR dialogs open, and their network allows direct connections. Then retry the unfinished side.",
-    "invitation": "${phone} wants to connect this computer to ${peer}. Allow the direct connection?"
+    "invitation": "{phone} wants to connect this computer to {peer}. Allow the direct connection?"
   }
 }

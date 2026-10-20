@@ -907,7 +907,7 @@ class Translations$desktopPairing$zh_CN extends Translations$desktopPairing$en {
   @override
   String get failed => '连接未完成。请确认扫描的是两台不同的电脑，均运行此版本并打开二维码窗口，且网络允许电脑直接连接，然后重试未完成的一端。';
   @override
-  String invitation({required Object phone, required Object peer}) => '\$${phone} 请求将本机与 \$${peer} 连接。是否允许直接连接？';
+  String invitation({required Object phone, required Object peer}) => '${phone} 请求将本机与 ${peer} 连接。是否允许直接连接？';
 }
 
 // Path: receiveTab.infoBox
