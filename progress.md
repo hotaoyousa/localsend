@@ -150,3 +150,18 @@
 - 修改：双电脑页面、配对 service/邀请数据模型、扫码页入口、ReceiveController、HTTP 客户端超时参数、二维码 PIN 解析、英/简繁中文文案和测试。
 - 验证：./init.sh 与原扫码22项基线通过；完整 Flutter 测试123项通过。Android USB 无设备，真实三设备传输尚未验收。Android/macOS 构建正在进行；Windows 将运行 fork 的无签名构建工作流。
 - 此提交也包含此前未提交的扫码/反向接收实现及对应测试，作为新功能依赖；保留用户 AGENTS.md 修改未提交。
+
+### 2026-10-20 — 双电脑连接三平台构建与发布完成
+
+- 实现已提交并推送到 `feat/qr-device-discovery`，代码提交 `965995a9`（主实现 `31e3129c`）；专用 Windows 无签名工作流 `build_desktop_pairing_windows.yml` 已接入分支推送。用户原有 AGENTS.md 修改未提交。
+- 自动化：完整123项测试通过，静态分析无问题；最终文案修正后桌面对话框6项回归通过。macOS 独立便携配置与55319测试端口启动成功，/info返回2.2；正常及畸形邀请在未打开二维码时均403，随后服务仍可用。测试实例均已关闭。
+- 构建完成：Android arm64 Debug APK；macOS arm64 Release，应用已重新进行 ad-hoc 深度签名并通过严格验证，DMG/ZIP完整性通过；Windows x64无签名安装程序，GitHub工作流 https://github.com/hotaoyousa/localsend/actions/runs/39361099755 成功（10分44秒）。macOS构建使用独立副本和 DEVELOPER_DIR 命令级覆盖；未改变系统 Xcode 选择。
+- 本地工件：
+  - `dist/desktop-pairing-20261020/LocalSend-1.18.2-phone-pairing-android-arm64-debug.apk`
+  - `dist/desktop-pairing-20261020/LocalSend.app`
+  - `dist/desktop-pairing-20261020/LocalSend-1.18.2-phone-pairing-macos-arm64.dmg`
+  - `dist/desktop-pairing-20261020/LocalSend-1.18.2-phone-pairing-macos-arm64.zip`
+  - `dist/desktop-pairing-20261020/LocalSend-1.18.2-phone-pairing-windows-x64.exe`
+- 已发布测试版：https://github.com/hotaoyousa/localsend/releases/tag/phone-pairing-20261020 。4个安装工件上传状态均为uploaded，大小与本地一致；Release标签包含实际功能源码。Android为.debug独立包名；macOS未做Apple公证，Windows未签名。
+- 用法：两台电脑展示接收链接二维码并保持窗口打开 → 手机发送页扫码界面右上角「连接两台电脑」 → 分别扫描A/B → 建立连接并在两台电脑确认 → 电脑发送页选择对方传文件。手机只交换连接信息。
+- 剩余验收：ADB无设备，尚未真实完成 Android+macOS+Windows 三设备互连及双向文件落盘核对。功能清单按原证据规则记blocked，不能宣称已完成真机验收；下一步安装上述版本在同一可直连网络测试。

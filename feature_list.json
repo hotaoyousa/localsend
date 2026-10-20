@@ -109,7 +109,7 @@
       "priority": 1,
       "area": "desktop_pairing",
       "title": "手机扫码协助两台电脑直接连接",
-      "status": "in_progress",
+      "status": "blocked",
       "user_visible_behavior": "手机扫描两台电脑并发送连接邀请，电脑确认后直接互相注册，在发送页选择对方传文件。",
       "verification": [
         "Android 扫描两台不同电脑；重复设备拒绝。",
@@ -117,7 +117,12 @@
         "两台电脑直接传输文件，校对收件；手机不传文件数据。",
         "生成 Android/macOS/Windows 可测试构建。"
       ],
-      "evidence": []
+      "evidence": [
+        "2026-10-20: ./init.sh 成功，原扫码22项基线通过。完整 Flutter 测试123项通过，flutter analyze 无问题；覆盖 Android 双扫码/重复拒绝/局部重试、macOS 与 Windows 邀请确认/拒绝/失败重试、身份校验、旧客户端及邀请载荷校验。最终文案修正后桌面对话框6项回归通过。",
+        "2026-10-20: Android arm64 Debug APK、macOS arm64 Release DMG/ZIP、Windows x64 无签名 EXE 均已生成并发布；GitHub Windows 构建39361099755成功。macOS codesign 深度严格验证、DMG/ZIP/APK 完整性验证通过；独立便携设置启动返回协议2.2，真实 prepare-upload 接口在二维码未打开时对正常及畸形邀请均返回403，之后仍可处理请求。",
+        "2026-10-20: Release https://github.com/hotaoyousa/localsend/releases/tag/phone-pairing-20261020 。四个安装工件服务端大小均与本地一致。尚无连接的 Android 真机或 Windows 实机完成三设备相互连接及实际收件验收，故不标记 passing。"
+      ],
+      "notes": "实现、自动化和三平台构建已完成；剩余验收：Android 手机扫码真实 Mac 与 Windows，双方确认后双向传输确定性文件并核对内容。当前无 USB Android 设备。"
     }
   ]
 }
