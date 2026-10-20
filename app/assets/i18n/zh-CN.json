@@ -129,6 +129,7 @@
       "title": "接收",
       "quickSave": "@:general.quickSave",
       "quickSaveFromFavorites": "@:general.quickSaveFromFavorites",
+      "qrConnectionAutoSave": "扫码连接自动保存",
       "requirePin": "@:webSharePage.requirePin",
       "autoFinish": "自动完成传输任务",
       "destination": "保存目录",
@@ -619,6 +620,7 @@
     "connecting": "正在建立连接…",
     "waiting": "等待 {peer} 发送文件",
     "readySend": "选择文件，发送给 {peer}",
+    "confirmReceive": "此设备发送文件时，需要确认接受或拒绝。",
     "autoReceive": "等待期间将自动保存这台设备发来的文件，点击取消可停止等待。"
   }
 }

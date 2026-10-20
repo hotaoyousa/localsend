@@ -867,6 +867,8 @@ class Translations$qrConnection$zh_HK extends Translations$qrConnection$en {
   @override
   String readySend({required Object peer}) => '選擇檔案，傳送給 ${peer}';
   @override
+  String get confirmReceive => '此裝置傳送檔案時，需要確認接受或拒絕。';
+  @override
   String get autoReceive => '等待期間將自動儲存這台裝置傳來的檔案，點擊取消可停止等待。';
 }
 
@@ -1004,6 +1006,8 @@ class Translations$settingsTab$receive$zh_HK extends Translations$settingsTab$re
   String get quickSave => _root.general.quickSave;
   @override
   String get quickSaveFromFavorites => _root.general.quickSaveFromFavorites;
+  @override
+  String get qrConnectionAutoSave => '掃碼連線自動儲存';
   @override
   String get requirePin => _root.webSharePage.requirePin;
   @override

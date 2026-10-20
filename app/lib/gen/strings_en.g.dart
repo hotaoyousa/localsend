@@ -1097,6 +1097,9 @@ class Translations$qrConnection$en {
   /// en: 'Ready to send files to {peer}'
   String readySend({required Object peer}) => 'Ready to send files to ${peer}';
 
+  /// en: 'You will be asked to accept or decline incoming files from this device.'
+  String get confirmReceive => 'You will be asked to accept or decline incoming files from this device.';
+
   /// en: 'Files from this device will be saved automatically while you wait here. Cancel to stop waiting.'
   String get autoReceive => 'Files from this device will be saved automatically while you wait here. Cancel to stop waiting.';
 }
@@ -1268,6 +1271,9 @@ class Translations$settingsTab$receive$en {
 
   /// en: 'Quick Save for "Favorites"'
   String get quickSaveFromFavorites => _root.general.quickSaveFromFavorites;
+
+  /// en: 'Automatically save files from QR connections'
+  String get qrConnectionAutoSave => 'Automatically save files from QR connections';
 
   /// en: 'Require PIN'
   String get requirePin => _root.webSharePage.requirePin;

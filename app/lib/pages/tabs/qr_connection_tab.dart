@@ -80,7 +80,8 @@ class QrConnectionTab extends StatelessWidget {
                           ? t.qrConnection.waiting(peer: connection.connectedPeer!.alias)
                           : t.qrConnection.readySend(peer: connection.connectedPeer!.alias),
                     ),
-                    if (connection.role == PairingRole.receive && !connection.failed) Text(t.qrConnection.autoReceive),
+                    if (connection.role == PairingRole.receive && !connection.failed)
+                      Text(settings.qrConnectionAutoSave ? t.qrConnection.autoReceive : t.qrConnection.confirmReceive),
                     TextButton(onPressed: () => context.ref.notifier(qrShareProvider).resetConnection(), child: Text(t.general.cancel)),
                   ],
                 ),

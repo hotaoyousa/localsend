@@ -129,6 +129,7 @@
       "title": "Receive",
       "quickSave": "@:general.quickSave",
       "quickSaveFromFavorites": "@:general.quickSaveFromFavorites",
+      "qrConnectionAutoSave": "Automatically save files from QR connections",
       "requirePin": "@:webSharePage.requirePin",
       "autoFinish": "Auto Finish",
       "destination": "Save to folder",
@@ -620,6 +621,7 @@
     "connecting": "Connecting…",
     "waiting": "Waiting for {peer} to send files",
     "readySend": "Ready to send files to {peer}",
+    "confirmReceive": "You will be asked to accept or decline incoming files from this device.",
     "autoReceive": "Files from this device will be saved automatically while you wait here. Cancel to stop waiting."
   }
 }

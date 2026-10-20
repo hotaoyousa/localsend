@@ -58,6 +58,7 @@ class SettingsService extends PureNotifier<SettingsState> {
     destination: _persistence.getDestination(),
     saveToGallery: _persistence.isSaveToGallery(),
     saveToHistory: _persistence.isSaveToHistory(),
+    qrConnectionAutoSave: _persistence.getQrConnectionAutoSave(),
     quickSave: _persistence.getQuickSave() == QuickSaveMode.on,
     quickSaveFromFavorites: _persistence.getQuickSave() == QuickSaveMode.paired,
     receivePin: _persistence.getReceivePin(),
@@ -173,6 +174,11 @@ class SettingsService extends PureNotifier<SettingsState> {
     state = state.copyWith(
       saveToHistory: saveToHistory,
     );
+  }
+
+  Future<void> setQrConnectionAutoSave(bool enabled) async {
+    await _persistence.setQrConnectionAutoSave(enabled);
+    state = state.copyWith(qrConnectionAutoSave: enabled);
   }
 
   Future<void> setQuickSave(bool quickSave) async {

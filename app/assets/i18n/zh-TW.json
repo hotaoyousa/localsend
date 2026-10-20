@@ -129,6 +129,7 @@
       "title": "接收",
       "quickSave": "@:general.quickSave",
       "quickSaveFromFavorites": "@:general.quickSaveFromFavorites",
+      "qrConnectionAutoSave": "掃碼連線自動儲存",
       "requirePin": "@:webSharePage.requirePin",
       "autoFinish": "自動完成傳送任務",
       "destination": "儲存目錄",
@@ -550,6 +551,7 @@
     "connecting": "正在建立連接…",
     "waiting": "等待 {peer} 傳送檔案",
     "readySend": "選擇檔案，傳送給 {peer}",
+    "confirmReceive": "此裝置傳送檔案時，需要確認接受或拒絕。",
     "autoReceive": "等待期間將自動儲存這台裝置傳來的檔案，點擊取消可停止等待。"
   }
 }

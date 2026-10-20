@@ -251,10 +251,12 @@ void main() {
     testWidgets('send scanner connects inline: $scenario', (tester) async {
       Device? result;
       final client = _RegisterClient();
+      final pairing = _PairingService()..failB = false;
       if (scenario != 'fast') client.gate = Completer<void>();
       await tester.pumpWidget(
         RefenaScope(
           overrides: [
+            desktopPairingProvider.overrideWithValue(pairing),
             qrDiscoveryClientProvider.overrideWithBuilder((_) => client),
             deviceFullInfoProvider.overrideWithBuilder((_) => _localDevice),
           ],
@@ -290,9 +292,12 @@ void main() {
       }
       await tester.pumpAndSettle();
       if (scenario == 'leave while connecting') {
+        expect(pairing.roles, isEmpty);
         expect(result, isNull);
         expect(find.text('Scan'), findsOneWidget);
       } else {
+        expect(pairing.roles, [PairingRole.receive]);
+        expect(pairing.introducedPeer, _localDevice);
         expect(result!.ip, '192.168.1.20');
         expect(result!.port, 54321);
         expect(result!.https, isFalse);
@@ -309,6 +314,7 @@ void main() {
     final scope = RefenaScope(
       overrides: [
         desktopPairingProvider.overrideWithValue(service),
+        persistenceProvider.overrideWithValue(MockPersistenceService()),
         deviceFullInfoProvider.overrideWithBuilder((_) => _localDevice),
       ],
       child: const MaterialApp(home: QrScanPage(mode: QrScanMode.receive)),
@@ -394,6 +400,7 @@ void main() {
           deviceFullInfoProvider.overrideWithBuilder((ref) => _localDevice),
           localIpProvider.overrideWithNotifier((ref) => _TestLocalIpService(ref.notifier(settingsProvider))),
           httpProvider.overrideWithBuilder((ref) => HttpClientCollection(privateKey: '', certificate: '', discovery: client)),
+          desktopPairingProvider.overrideWithValue(_PairingService()..failB = false),
           qrDiscoveryClientProvider.overrideWithBuilder((ref) => client),
           sendProvider.overrideWithNotifier((ref) => sender),
           nearbyDevicesProvider.overrideWithNotifier(

@@ -20,6 +20,7 @@ import 'package:localsend_app/util/native/macos_channel.dart';
 import 'package:localsend_app/util/native/pick_directory_path.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/widget/custom_dropdown_button.dart';
+import 'package:localsend_app/widget/destination_directory_button.dart';
 import 'package:localsend_app/widget/dialogs/encryption_disabled_notice.dart';
 import 'package:localsend_app/widget/dialogs/pin_dialog.dart';
 import 'package:localsend_app/widget/dialogs/quick_save_from_favorites_notice.dart';
@@ -179,6 +180,11 @@ class SettingsTab extends StatelessWidget {
                   },
                 ),
                 _BooleanEntry(
+                  label: t.settingsTab.receive.qrConnectionAutoSave,
+                  value: vm.settings.qrConnectionAutoSave,
+                  onChanged: (b) async => ref.notifier(settingsProvider).setQrConnectionAutoSave(b),
+                ),
+                _BooleanEntry(
                   label: t.settingsTab.receive.requirePin,
                   value: vm.settings.receivePin != null,
                   onChanged: (b) async {
@@ -208,12 +214,9 @@ class SettingsTab extends StatelessWidget {
                 if (checkPlatformWithFileSystem())
                   _SettingsEntry(
                     label: t.settingsTab.receive.destination,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor: Theme.of(context).inputDecorationTheme.fillColor,
-                        shape: RoundedRectangleBorder(borderRadius: Theme.of(context).inputDecorationTheme.borderRadius),
-                        foregroundColor: Theme.of(context).colorScheme.onSurface,
-                      ),
+                    fullWidth: true,
+                    child: DestinationDirectoryButton(
+                      destination: vm.settings.destination,
                       onPressed: () async {
                         if (vm.settings.destination != null) {
                           await ref.notifier(settingsProvider).setDestination(null);
@@ -231,10 +234,6 @@ class SettingsTab extends StatelessWidget {
                           await ref.notifier(settingsProvider).setDestination(directory);
                         }
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        child: Text(vm.settings.destination ?? t.settingsTab.receive.downloads, style: Theme.of(context).textTheme.titleMedium),
-                      ),
                     ),
                   ),
                 if (checkPlatformWithGallery())
@@ -612,25 +611,31 @@ class SettingsTab extends StatelessWidget {
 class _SettingsEntry extends StatelessWidget {
   final String label;
   final Widget child;
+  final bool fullWidth;
 
-  const _SettingsEntry({required this.label, required this.child});
+  const _SettingsEntry({required this.label, required this.child, this.fullWidth = false});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(label),
-          ),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 150,
-            child: child,
-          ),
-        ],
-      ),
+      child: fullWidth
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [Text(label), const SizedBox(height: 8), child],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: Text(label),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 150,
+                  child: child,
+                ),
+              ],
+            ),
     );
   }
 }

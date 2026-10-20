@@ -471,6 +471,24 @@ class MockPersistenceService extends _i1.Mock implements _i4.PersistenceService 
           as _i5.Future<void>);
 
   @override
+  bool getQrConnectionAutoSave() =>
+      (super.noSuchMethod(
+            Invocation.method(#getQrConnectionAutoSave, []),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
+  _i5.Future<void> setQrConnectionAutoSave(bool? enabled) =>
+      (super.noSuchMethod(
+            Invocation.method(#setQrConnectionAutoSave, [enabled]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   _i12.QuickSaveMode getQuickSave() =>
       (super.noSuchMethod(
             Invocation.method(#getQuickSave, []),

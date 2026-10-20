@@ -80,6 +80,7 @@ const _multicastGroupKey = 'ls_multicast_group';
 const _destinationKey = 'ls_destination';
 const _saveToGallery = 'ls_save_to_gallery';
 const _saveToHistory = 'ls_save_to_history';
+const _qrConnectionAutoSave = 'ls_qr_connection_auto_save';
 const _quickSave = 'ls_quick_save'; // a QuickSaveMode; was a bool until storage version 2 ('ls_quick_save_from_favorites' is merged into this key)
 const _receivePin = 'ls_receive_pin';
 const _autoFinish = 'ls_auto_finish';
@@ -451,6 +452,12 @@ class PersistenceService {
 
   Future<void> setAdvancedSettingsEnabled(bool isEnabled) async {
     await _prefs.setBool(_advancedSettingsKey, isEnabled);
+  }
+
+  bool getQrConnectionAutoSave() => _prefs.getBool(_qrConnectionAutoSave) ?? false;
+
+  Future<void> setQrConnectionAutoSave(bool enabled) async {
+    await _prefs.setBool(_qrConnectionAutoSave, enabled);
   }
 
   QuickSaveMode getQuickSave() {

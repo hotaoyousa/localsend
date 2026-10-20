@@ -215,3 +215,13 @@
   - `dist/qr-polish-20261020/LocalSend-1.18.2-qr-polish-windows-x64.exe`
 - 新版校验后删除 `dist/qr-connection-20261020`、`dist/windows-last-available-20261020`，以及 app/build、独立macOS副本app/build和本轮Kotlin缓存；清理期间实测可用空间增加约15.62GiB。保留新包、源码、工具链与macOS本地Swift包配置；本次未删除GitHub历史Release。
 - 剩余验收：ADB无设备，手机实际动画观感和Android/macOS/Windows真实三设备文件落盘仍需安装新版实测；Windows未经本地实机启动验收，Mac未Apple公证、Windows未签名。未将既有真实三设备验收项标记passing。
+
+
+### 2026-10-20 — 扫码收件确认与真实保存目录
+
+- 当前功能 qr_receive-004，按用户要求新增三端扫码收件确认及独立扫码连接自动保存开关（默认关闭）；该开关对本次明确连接的发送者生效，并覆盖普通/收藏自动保存，不影响普通传输规则。
+- 复用现有ReceivePage的接受/拒绝按钮；扫码发送通过既有元数据邀请明确接收角色，手机扫码接收及双电脑B同样应用新策略。收件会话记录扫码来源，结束处理保持同一规则。等待页同步展示是否需要确认。
+- 保存目录读取与收件端相同的系统API，完整路径单独占行；Windows显示原生反斜杠，兼容已移动的Downloads。自定义目录及恢复默认操作保持。
+- 修改设置存储/状态及生成映射、收件控制器、扫码页/连接页/设置页、目录provider/widget、英/简繁中文及对应测试。
+- 验证：./init.sh与33项扫码基线通过；完整176项Flutter测试通过，静态分析无问题。覆盖Android/macOS/Windows接受/拒绝、自动保存、全局开关不绕过扫码确认、不同发送者、普通传输、默认/自定义路径、设置持久化；ADB无设备。
+- 已授权生成并上传三平台新版，验证新包后删除旧本地产物。Windows使用fork既有工作流，Android/macOS本机构建；用户AGENTS.md修改不提交。

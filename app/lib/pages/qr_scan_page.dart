@@ -10,6 +10,7 @@ import 'package:localsend_app/provider/http_provider.dart';
 import 'package:localsend_app/provider/last_devices.provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/qr_share_provider.dart';
+import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/util/desktop_pairing_invitation.dart';
 import 'package:localsend_app/util/qr_connection_info.dart';
 import 'package:localsend_app/util/ui/snackbar.dart';
@@ -135,6 +136,22 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
           );
       if (!mounted || generation != _scannerGeneration) return;
       final target = response.body.toDevice(connection.ip, connection.port, connection.https);
+      final service = ref.read(desktopPairingProvider);
+      final token = service.createToken();
+      _receiveToken = token;
+      try {
+        // Explicitly identify this QR sender so the recipient can apply its QR setting.
+        await service.introduce(
+          recipient: target,
+          peer: ref.read(deviceFullInfoProvider),
+          token: token,
+          pin: connection.pin,
+          role: PairingRole.receive,
+        );
+      } finally {
+        _receiveToken = null;
+      }
+      if (!mounted || generation != _scannerGeneration) return;
       ref.redux(lastDevicesProvider).dispatch(AddLastDeviceAction(target));
       Navigator.of(context).pop(target);
     } catch (_) {
@@ -353,6 +370,13 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
                                     t.qrScanPage.receiveWaiting(alias: _receiveAlias ?? ip),
                                     textAlign: TextAlign.center,
                                   ),
+                                  if (widget.mode == QrScanMode.receive) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      ref.watch(settingsProvider).qrConnectionAutoSave ? t.qrConnection.autoReceive : t.qrConnection.confirmReceive,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

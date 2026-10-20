@@ -89,6 +89,13 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     'quickSave',
     _$quickSave,
   );
+  static bool _$qrConnectionAutoSave(SettingsState v) => v.qrConnectionAutoSave;
+  static const Field<SettingsState, bool> _f$qrConnectionAutoSave = Field(
+    'qrConnectionAutoSave',
+    _$qrConnectionAutoSave,
+    opt: true,
+    def: false,
+  );
   static bool _$quickSaveFromFavorites(SettingsState v) =>
       v.quickSaveFromFavorites;
   static const Field<SettingsState, bool> _f$quickSaveFromFavorites = Field(
@@ -186,6 +193,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     #saveToGallery: _f$saveToGallery,
     #saveToHistory: _f$saveToHistory,
     #quickSave: _f$quickSave,
+    #qrConnectionAutoSave: _f$qrConnectionAutoSave,
     #quickSaveFromFavorites: _f$quickSaveFromFavorites,
     #receivePin: _f$receivePin,
     #autoFinish: _f$autoFinish,
@@ -220,6 +228,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       saveToGallery: data.dec(_f$saveToGallery),
       saveToHistory: data.dec(_f$saveToHistory),
       quickSave: data.dec(_f$quickSave),
+      qrConnectionAutoSave: data.dec(_f$qrConnectionAutoSave),
       quickSaveFromFavorites: data.dec(_f$quickSaveFromFavorites),
       receivePin: data.dec(_f$receivePin),
       autoFinish: data.dec(_f$autoFinish),
@@ -320,6 +329,7 @@ abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     bool? saveToGallery,
     bool? saveToHistory,
     bool? quickSave,
+    bool? qrConnectionAutoSave,
     bool? quickSaveFromFavorites,
     String? receivePin,
     bool? autoFinish,
@@ -382,6 +392,7 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     bool? saveToGallery,
     bool? saveToHistory,
     bool? quickSave,
+    bool? qrConnectionAutoSave,
     bool? quickSaveFromFavorites,
     Object? receivePin = $none,
     bool? autoFinish,
@@ -414,6 +425,8 @@ class _SettingsStateCopyWithImpl<$R, $Out>
       if (saveToGallery != null) #saveToGallery: saveToGallery,
       if (saveToHistory != null) #saveToHistory: saveToHistory,
       if (quickSave != null) #quickSave: quickSave,
+      if (qrConnectionAutoSave != null)
+        #qrConnectionAutoSave: qrConnectionAutoSave,
       if (quickSaveFromFavorites != null)
         #quickSaveFromFavorites: quickSaveFromFavorites,
       if (receivePin != $none) #receivePin: receivePin,
@@ -452,6 +465,10 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     saveToGallery: data.get(#saveToGallery, or: $value.saveToGallery),
     saveToHistory: data.get(#saveToHistory, or: $value.saveToHistory),
     quickSave: data.get(#quickSave, or: $value.quickSave),
+    qrConnectionAutoSave: data.get(
+      #qrConnectionAutoSave,
+      or: $value.qrConnectionAutoSave,
+    ),
     quickSaveFromFavorites: data.get(
       #quickSaveFromFavorites,
       or: $value.quickSaveFromFavorites,
