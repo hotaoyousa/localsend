@@ -75,6 +75,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
   late final Translations$web$en web = Translations$web$en.internal(_root);
   late final Translations$assetPicker$en assetPicker = Translations$assetPicker$en.internal(_root);
   late final Translations$desktopPairing$en desktopPairing = Translations$desktopPairing$en.internal(_root);
+  late final Translations$qrConnection$en qrConnection = Translations$qrConnection$en.internal(_root);
 }
 
 // Path: qrScanPage
@@ -1003,15 +1004,15 @@ class Translations$desktopPairing$en {
   /// en: 'Connect two computers'
   String get title => 'Connect two computers';
 
-  /// en: 'Keep LocalSend open on both computers and show their receive-link QR codes. Scan computer A and computer B, then confirm the connection invitation on each computer. All three devices must be on a network where the computers can reach each other.'
+  /// en: 'Open QR connect on both computers. Scan sender A and then receiver B using codes on the same local network. A will choose files and B will wait to receive.'
   String get instructions =>
-      'Keep LocalSend open on both computers and show their receive-link QR codes. Scan computer A and computer B, then confirm the connection invitation on each computer. All three devices must be on a network where the computers can reach each other.';
+      'Open QR connect on both computers. Scan sender A and then receiver B using codes on the same local network. A will choose files and B will wait to receive.';
 
-  /// en: 'Computer A'
-  String get computerA => 'Computer A';
+  /// en: 'Computer A · Sender'
+  String get computerA => 'Computer A · Sender';
 
-  /// en: 'Computer B'
-  String get computerB => 'Computer B';
+  /// en: 'Computer B · Receiver'
+  String get computerB => 'Computer B · Receiver';
 
   /// en: 'Scan this computer’s QR code'
   String get notScanned => 'Scan this computer’s QR code';
@@ -1025,22 +1026,79 @@ class Translations$desktopPairing$en {
   /// en: 'The phone only exchanges connection information. Files transfer directly between the computers.'
   String get directTransfer => 'The phone only exchanges connection information. Files transfer directly between the computers.';
 
-  /// en: 'Confirm the invitation on each computer. Keep their QR dialogs open.'
-  String get confirmOnComputers => 'Confirm the invitation on each computer. Keep their QR dialogs open.';
+  /// en: 'Preparing receiver B, then connecting sender A. No role selection is needed on the computers.'
+  String get confirmOnComputers => 'Preparing receiver B, then connecting sender A. No role selection is needed on the computers.';
 
   /// en: 'Connection confirmed'
   String get connected => 'Connection confirmed';
 
-  /// en: 'Both computers are connected. Close their QR dialogs and select the other computer on the Send tab to transfer files.'
-  String get done => 'Both computers are connected. Close their QR dialogs and select the other computer on the Send tab to transfer files.';
+  /// en: 'Connected. Choose files on computer A; computer B is waiting to receive.'
+  String get done => 'Connected. Choose files on computer A; computer B is waiting to receive.';
 
-  /// en: 'Connection not completed. Check that you scanned two different computers, both run this version with their QR dialogs open, and their network allows direct connections. Then retry the unfinished side.'
+  /// en: 'Connection not completed. Check that both different computers run this version with QR connect open and can reach each other, then retry.'
   String get failed =>
-      'Connection not completed. Check that you scanned two different computers, both run this version with their QR dialogs open, and their network allows direct connections. Then retry the unfinished side.';
+      'Connection not completed. Check that both different computers run this version with QR connect open and can reach each other, then retry.';
 
   /// en: '{phone} wants to connect this computer to {peer}. Allow the direct connection?'
   String invitation({required Object phone, required Object peer}) =>
       '${phone} wants to connect this computer to ${peer}. Allow the direct connection?';
+}
+
+// Path: qrConnection
+class Translations$qrConnection$en {
+  Translations$qrConnection$en.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'QR connect'
+  String get title => 'QR connect';
+
+  /// en: 'Scan to send'
+  String get scanSend => 'Scan to send';
+
+  /// en: 'Scan to receive'
+  String get scanReceive => 'Scan to receive';
+
+  /// en: 'Link computers'
+  String get linkComputers => 'Link computers';
+
+  /// en: 'Scan a device, then choose files to send.'
+  String get sendHint => 'Scan a device, then choose files to send.';
+
+  /// en: 'Scan a device and wait for its files.'
+  String get receiveHint => 'Scan a device and wait for its files.';
+
+  /// en: 'A sends files directly to B.'
+  String get pairHint => 'A sends files directly to B.';
+
+  /// en: 'This device’s QR codes'
+  String get myCode => 'This device’s QR codes';
+
+  /// en: 'Choose the QR code on the same local network as the scanning device. Keep this page open to connect.'
+  String get chooseNetwork => 'Choose the QR code on the same local network as the scanning device. Keep this page open to connect.';
+
+  /// en: 'Show QR code'
+  String get showCode => 'Show QR code';
+
+  /// en: 'Start receiving'
+  String get startServer => 'Start receiving';
+
+  /// en: 'Connect to Wi-Fi or a local network to show a QR code.'
+  String get noNetwork => 'Connect to Wi-Fi or a local network to show a QR code.';
+
+  /// en: 'Connecting…'
+  String get connecting => 'Connecting…';
+
+  /// en: 'Waiting for {peer} to send files'
+  String waiting({required Object peer}) => 'Waiting for ${peer} to send files';
+
+  /// en: 'Ready to send files to {peer}'
+  String readySend({required Object peer}) => 'Ready to send files to ${peer}';
+
+  /// en: 'Files from this device will be saved automatically while you wait here. Cancel to stop waiting.'
+  String get autoReceive => 'Files from this device will be saved automatically while you wait here. Cancel to stop waiting.';
 }
 
 // Path: receiveTab.infoBox

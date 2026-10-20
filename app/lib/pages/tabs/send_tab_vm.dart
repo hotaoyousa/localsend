@@ -94,7 +94,7 @@ final sendTabVmProvider = ViewProvider((ref) {
       }
     },
     onTapQr: (context) async {
-      final QrConnectionInfo? address = await context.push(() => const QrScanPage());
+      final QrConnectionInfo? address = await context.push(() => const QrScanPage(mode: QrScanMode.send));
       if (address == null || !context.mounted) {
         return;
       }

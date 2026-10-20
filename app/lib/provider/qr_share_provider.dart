@@ -1,13 +1,13 @@
+import 'package:localsend_app/util/desktop_pairing_invitation.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// Tracks the QR codes this device currently shows and the peers that
 /// registered while a QR code was open.
 ///
-/// A registration is how a peer announces its own address, so a peer that
-/// registers while this device advertises its address has scanned that QR code.
-/// The QR dialogs offer to send files back to such a peer, which is the reverse
-/// of the regular transfer (where the peer sends files here).
+/// The connection tab handles explicit send/receive invitations. Legacy web QR
+/// dialogs retain their register-based send prompt; the hub does not infer a
+/// transfer direction from ordinary network discovery registrations.
 final qrShareProvider = NotifierProvider<QrShareService, QrShareState>((ref) {
   return QrShareService();
 });
@@ -19,13 +19,23 @@ class QrShareState {
   /// A peer that registered while a QR code was open and that the user has
   /// neither answered nor dismissed yet.
   final Device? pendingRequest;
+  final bool hubActive;
+  final Device? connectedPeer;
+  final PairingRole? role;
+  final bool connecting;
+  final bool failed;
 
   const QrShareState({
     required this.openDialogs,
     this.pendingRequest,
+    this.hubActive = false,
+    this.connectedPeer,
+    this.role,
+    this.connecting = false,
+    this.failed = false,
   });
 
-  bool get isSharing => openDialogs > 0;
+  bool get isSharing => hubActive || openDialogs > 0;
 }
 
 class QrShareService extends Notifier<QrShareState> {
@@ -36,21 +46,54 @@ class QrShareService extends Notifier<QrShareState> {
   @override
   QrShareState init() => const QrShareState(openDialogs: 0);
 
+  void setHubActive(bool active) {
+    state = QrShareState(
+      openDialogs: state.openDialogs,
+      hubActive: active,
+      connectedPeer: active ? state.connectedPeer : null,
+      role: active ? state.role : null,
+    );
+  }
+
+  void connectionStarted(PairingRole role) {
+    state = QrShareState(openDialogs: state.openDialogs, hubActive: state.hubActive, role: role, connecting: true);
+  }
+
+  void connectionFinished({Device? peer, required PairingRole role, bool failed = false}) {
+    state = QrShareState(openDialogs: state.openDialogs, hubActive: state.hubActive, connectedPeer: peer, role: role, failed: failed);
+  }
+
+  void resetConnection() {
+    state = QrShareState(openDialogs: state.openDialogs, hubActive: state.hubActive);
+  }
+
   /// A QR dialog became visible.
   void dialogOpened() {
-    state = QrShareState(openDialogs: state.openDialogs + 1, pendingRequest: state.pendingRequest);
+    state = QrShareState(
+      openDialogs: state.openDialogs + 1,
+      hubActive: state.hubActive,
+      connectedPeer: state.connectedPeer,
+      role: state.role,
+      pendingRequest: state.pendingRequest,
+    );
   }
 
   /// A QR dialog was closed. The last one ends the QR session.
   void dialogClosed() {
     final openDialogs = state.openDialogs - 1;
     if (openDialogs > 0) {
-      state = QrShareState(openDialogs: openDialogs, pendingRequest: state.pendingRequest);
+      state = QrShareState(
+        openDialogs: openDialogs,
+        hubActive: state.hubActive,
+        connectedPeer: state.connectedPeer,
+        role: state.role,
+        pendingRequest: state.pendingRequest,
+      );
       return;
     }
 
     _prompted.clear();
-    state = const QrShareState(openDialogs: 0);
+    state = QrShareState(openDialogs: 0, hubActive: state.hubActive, connectedPeer: state.connectedPeer, role: state.role);
   }
 
   /// A peer registered itself on this device's server.
@@ -75,7 +118,7 @@ class QrShareService extends Notifier<QrShareState> {
   /// This only counts while a QR code is open, and every peer is asked at most
   /// once per QR session.
   void offer(Device device) {
-    if (!state.isSharing) {
+    if (!state.isSharing || state.hubActive) {
       return;
     }
 
@@ -92,6 +135,6 @@ class QrShareService extends Notifier<QrShareState> {
       return;
     }
 
-    state = QrShareState(openDialogs: state.openDialogs);
+    state = QrShareState(openDialogs: state.openDialogs, hubActive: state.hubActive, connectedPeer: state.connectedPeer, role: state.role);
   }
 }

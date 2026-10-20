@@ -165,3 +165,29 @@
 - 已发布测试版：https://github.com/hotaoyousa/localsend/releases/tag/phone-pairing-20261020 。4个安装工件上传状态均为uploaded，大小与本地一致；Release标签包含实际功能源码。Android为.debug独立包名；macOS未做Apple公证，Windows未签名。
 - 用法：两台电脑展示接收链接二维码并保持窗口打开 → 手机发送页扫码界面右上角「连接两台电脑」 → 分别扫描A/B → 建立连接并在两台电脑确认 → 电脑发送页选择对方传文件。手机只交换连接信息。
 - 剩余验收：ADB无设备，尚未真实完成 Android+macOS+Windows 三设备互连及双向文件落盘核对。功能清单按原证据规则记blocked，不能宣称已完成真机验收；下一步安装上述版本在同一可直连网络测试。
+
+### 2026-10-20 — 扫码连接导航与角色逻辑改进（仅本地）
+
+- 本轮按用户要求不上传GitHub，先保留旧产物，待新版验证后再清理。
+- 新增与接收/发送/设置同级的「扫码连接」；桌面/手机均直接展示本机局域网地址、复制、二维码和放大地址。手机另有突出显示的扫码发送、扫码接收、连接电脑三个入口。原发送页扫码快捷入口同样改为直接发送模式。
+- 新扫码发送直接识别目标并选文件；接收直接请求对方发送并等待。双电脑固定A发送/B接收，先准备B，再让A选文件，电脑无需再确认角色；仅从本轮选定发送者自动接收，离开或取消清除等待。发送端始终先选文件，取消不会发送旧选择。
+- 处理多网卡：手机介绍自己时使用服务器观察到的来源IP，保留端口/协议/指纹。回归覆盖请求中止、不在线、重复设备和失败重试。
+- 验证：./init.sh及基线通过，flutter analyze无问题，完整Flutter测试143项通过，三平台页面预览通过（320px手机宽度）；ADB无连接设备。Android APK已构建成功，macOS Release正在构建。
+- Windows：本机为macOS且本轮不上传源码；新增 `support/scripts/build_qr_connection_windows.ps1` 供Windows主机本地生成新版便携ZIP。尚未运行Windows编译，不将旧EXE标为新版。
+
+### 2026-10-20 — 扫码连接新版构建、实际流程验证与清理完成
+
+- 新版工件均位于 `dist/qr-connection-20261020/`：`LocalSend-1.18.2-qr-connection-android-arm64-debug.apk`、`LocalSend.app`、`LocalSend-1.18.2-qr-connection-macos-arm64.dmg`、`LocalSend-1.18.2-qr-connection-macos-arm64.zip`。APK/ZIP和DMG校验通过，macOS ad-hoc深度签名后严格验证通过。
+- 实际macOS应用采用独立便携设置和55329端口启动成功，验证「接收、发送、扫码连接、设置」四个入口；进入扫码连接立即显示本机地址、复制、二维码/放大按钮。临时本地HTTP对端验证receive/send角色均返回204，发生两次直接register；实际发送端自动显示添加文件，无角色确认，无用户文件传输。临时实例已关闭。
+- 原生测试中旧网络接口192.168.1.100已断开，初次注册超时；改用当前en0地址后两角色均成功。
+- 用户明确选择先完成Android/macOS，保留旧Windows包。旧Windows EXE已移至 `dist/windows-last-available-20261020/LocalSend-1.18.2-phone-pairing-windows-x64.exe`，附有旧版说明；本轮没有新版Windows二进制。
+- Windows新版源码归档：`dist/qr-connection-20261020/LocalSend-qr-connection-source.zip`；构建脚本 `support/scripts/build_qr_connection_windows.ps1`（尚未在Windows执行）。同目录README有用法，preview有三平台界面渲染。
+- 新版验证完成后，删除旧Android/macOS产物、app/build和macOS独立副本中的重复构建/派生缓存及本轮临时测试副本，实际增加可用空间约 14.57 GiB；保留源码、工具链和用户AGENTS.md修改。
+- 本轮没有git push、Release上传或远程Windows构建。实现留在工作区；完整143项Flutter测试通过，静态分析无问题。Android无USB设备，真实三设备收件验收仍待进行，功能清单未标passing。
+
+### 2026-10-20 — 新版源码同步到 fork，供 Windows 自行构建
+
+- 用户新授权：将本次扫码连接构建对应源码上传 GitHub，方便后续在其他 Windows 电脑自行编译；此前仅本地交付的约束已被此次源码上传请求更新。
+- 同步范围：新版扫码连接页面、自动 A/B 角色分派、文案/生成文件、对应测试、功能清单、进度记录，以及 `support/scripts/build_qr_connection_windows.ps1`。新增中文说明 `support/docs/QR_CONNECTION_WINDOWS_ZH.md`，含目标分支、依赖版本、克隆/更新命令、脚本入口和 ZIP 输出路径。
+- 目标：fork `hotaoyousa/localsend` 的 `feat/qr-device-discovery`。提交使用 skip ci，避免仅同步源码时触发已有远程 Windows 构建。安装包、缓存、独立构建副本及用户原有 AGENTS.md 修改未纳入本次提交。
+- 验证依据：本次功能构建时的完整143项 Flutter 测试、静态检查与 macOS 实际角色流程验证均已通过；此次仅补编译说明及同步源码，未重新构建安装包。Windows 脚本尚未在 Windows 主机执行。下一步在 Windows 拉取该分支，按中文说明编译并验收实际文件收件。

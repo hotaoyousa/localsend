@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/pages/qr_scan_page.dart';
 import 'package:localsend_app/provider/desktop_pairing_provider.dart';
+import 'package:localsend_app/util/desktop_pairing_invitation.dart';
 import 'package:localsend_app/util/qr_connection_info.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:localsend_isolates/rust/api/cancel.dart';
@@ -59,17 +60,24 @@ class _DesktopPairingPageState extends State<DesktopPairingPage> with Refena {
     });
     final service = ref.read(desktopPairingProvider);
     try {
-      for (var i = 0; i < 2; i++) {
+      for (final i in [1, 0]) {
         if (_connected[i]) continue;
         final token = service.createToken();
         _tokens.add(token);
         try {
-          await service.introduce(recipient: _computers[i]!, peer: _computers[1 - i]!, token: token, pin: _endpoints[i]?.pin);
+          await service.introduce(
+            recipient: _computers[i]!,
+            peer: _computers[1 - i]!,
+            token: token,
+            pin: _endpoints[i]?.pin,
+            role: i == 0 ? PairingRole.send : PairingRole.receive,
+          );
           if (!mounted) return;
           setState(() => _connected[i] = true);
         } catch (_) {
           if (!mounted) return;
           setState(() => _failed = true);
+          break;
         } finally {
           _tokens.remove(token);
         }

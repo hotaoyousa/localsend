@@ -8,6 +8,7 @@ import 'package:localsend_app/pages/home_page.dart';
 import 'package:localsend_app/pages/home_page_controller.dart';
 import 'package:localsend_app/pages/progress_page.dart';
 import 'package:localsend_app/pages/receive_page.dart';
+import 'package:localsend_app/provider/desktop_pairing_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/file_transfer_provider.dart';
@@ -29,6 +30,7 @@ import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/native/tray_helper.dart';
 import 'package:localsend_app/widget/dialogs/desktop_pairing_dialog.dart';
 import 'package:localsend_app/widget/dialogs/open_file_dialog.dart';
+import 'package:localsend_app/widget/dialogs/qr_send_request_prompt.dart';
 import 'package:localsend_isolates/isolate.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:localsend_isolates/model/file_status.dart';
@@ -60,7 +62,19 @@ class ReceiveController {
   Future<void> _onPairingInvitation(HttpServerPrepareUploadEvent event) async {
     final ref = server.ref;
     final file = event.files.length == 1 ? event.files.values.single : null;
-    final peer = file == null ? null : DesktopPairingInvitation.decode(file.preview);
+    var peer = file == null ? null : DesktopPairingInvitation.decode(file.preview);
+    // A phone introducing itself must use the address observed by this server,
+    // rather than its first network interface (which may be on another LAN).
+    if (peer != null && peer.fingerprint == (event.certFingerprint ?? event.info.fingerprint).toUpperCase()) {
+      peer = DesktopPairingInvitation(
+        ip: event.ip,
+        port: peer.port,
+        https: peer.https,
+        fingerprint: peer.fingerprint,
+        alias: peer.alias,
+        role: peer.role,
+      );
+    }
     final sessionId = event.sessionId;
     _pairingSessionId = sessionId;
     Device? connected;
@@ -70,13 +84,25 @@ class ReceiveController {
         if (_pairingSessionId != sessionId) return;
         final context = Routerino.context;
         if (!context.mounted) return;
-        final route = DialogRoute<Device>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => DesktopPairingDialog(phoneAlias: event.info.alias, peer: peer),
-        );
-        _pairingDialog = route;
-        connected = await Navigator.of(context).push(route);
+        if (peer.role != null) {
+          final role = peer.role!;
+          ref.notifier(qrShareProvider).connectionStarted(role);
+          Navigator.of(context).popUntil((route) => route.settings.name != 'qr-connection-code');
+          connected = await ref.read(desktopPairingProvider).connect(peer);
+          if (_pairingSessionId != sessionId || !ref.read(qrShareProvider).isSharing) {
+            connected = null;
+            return;
+          }
+          ref.notifier(qrShareProvider).connectionFinished(peer: connected, role: role);
+        } else {
+          final route = DialogRoute<Device>(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => DesktopPairingDialog(phoneAlias: event.info.alias, peer: peer!),
+          );
+          _pairingDialog = route;
+          connected = await Navigator.of(context).push(route);
+        }
       }
       if (_pairingSessionId != sessionId) return;
       if (connected != null) {
@@ -86,6 +112,7 @@ class ReceiveController {
     } catch (e) {
       connected = null;
       _logger.warning('Computer connection invitation failed: $e');
+      if (peer?.role != null) ref.notifier(qrShareProvider).connectionFinished(role: peer!.role!, failed: true);
     } finally {
       if (_pairingSessionId == sessionId) {
         _pairingSessionId = null;
@@ -107,6 +134,22 @@ class ReceiveController {
               ),
             );
       }
+    }
+    if (connected != null && peer?.role == PairingRole.send) {
+      // Release the metadata request before opening the picker / file transfer.
+      final target = connected;
+      unawaited(
+        Future<void>(() async {
+          try {
+            final context = Routerino.context;
+            if (!context.mounted) return;
+            await sendFilesToDevice(context, target, chooseFiles: true);
+          } catch (e) {
+            _logger.warning('Could not start QR sending: $e');
+            ref.notifier(qrShareProvider).connectionFinished(role: PairingRole.send, failed: true);
+          }
+        }),
+      );
     }
   }
 
@@ -195,7 +238,10 @@ class ReceiveController {
           statuses: {for (final file in files.values) file.id: FileStatus.queue},
         );
 
-    bool quickSave = settings.quickSave && server.getState().session?.message == null;
+    final qrConnection = server.ref.read(qrShareProvider);
+    final expectedQrSender =
+        qrConnection.role == PairingRole.receive && qrConnection.connectedPeer?.fingerprint.toUpperCase() == senderFingerprint.toUpperCase();
+    bool quickSave = (settings.quickSave || expectedQrSender) && server.getState().session?.message == null;
     final quickSaveFromFavorites = settings.quickSaveFromFavorites && server.getState().session?.message == null;
     if (quickSaveFromFavorites) {
       final bool isFavorite = server.ref.read(favoritesProvider).any((e) => e.fingerprint == senderFingerprint);
@@ -535,6 +581,7 @@ class ReceiveController {
   void onPrepareUploadAborted(HttpServerPrepareUploadAbortedEvent event) {
     if (_pairingSessionId == event.sessionId) {
       _pairingSessionId = null;
+      if (server.ref.read(qrShareProvider).connecting) server.ref.notifier(qrShareProvider).resetConnection();
       final route = _pairingDialog;
       _pairingDialog = null;
       if (route != null && route.isActive) route.navigator?.removeRoute(route);

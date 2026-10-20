@@ -140,6 +140,14 @@ void main() {
     expect(DesktopPairingInvitation.decode(file.preview)!.fingerprint, a.fingerprint);
     expect(file.size.toInt(), utf8.encode(file.preview!).length);
   });
+  test('role is part of invitation and unknown roles are rejected', () async {
+    await service.introduce(recipient: b, peer: a, token: _Token(), role: PairingRole.receive);
+    final payload = client.invitation!.files.values.single.preview!;
+    expect(DesktopPairingInvitation.decode(payload)!.role, PairingRole.receive);
+    final json = jsonDecode(payload) as Map<String, dynamic>;
+    json['role'] = 'unknown';
+    expect(DesktopPairingInvitation.decode(jsonEncode(json)), isNull);
+  });
   test('same computer is refused before any request', () async {
     await expectLater(service.introduce(recipient: b, peer: b, token: _Token()), throwsStateError);
     expect(client.invitation, isNull);

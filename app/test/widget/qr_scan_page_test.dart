@@ -25,6 +25,7 @@ import 'package:localsend_app/provider/network/send_provider.dart';
 import 'package:localsend_app/provider/persistence_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/util/desktop_pairing_invitation.dart';
 import 'package:localsend_app/util/native/file_picker.dart';
 import 'package:localsend_app/util/qr_connection_info.dart';
 import 'package:localsend_app/widget/dialogs/add_file_dialog.dart';
@@ -146,11 +147,13 @@ class _PairToken extends Mock implements RsCancellationToken {}
 
 class _PairingService extends Mock implements DesktopPairingService {
   final attempts = <String>[];
+  final roles = <PairingRole?>[];
+  Device? introducedPeer;
   bool failB = true;
   @override
   RsCancellationToken Function() get createToken => _PairToken.new;
   @override
-  Future<Device> discover(QrConnectionInfo endpoint) async => _localDevice.copyWith(
+  Future<Device> discover(QrConnectionInfo endpoint, {bool computerOnly = true}) async => _localDevice.copyWith(
     ip: endpoint.ip,
     port: endpoint.port,
     https: endpoint.https,
@@ -159,8 +162,16 @@ class _PairingService extends Mock implements DesktopPairingService {
     deviceType: DeviceType.desktop,
   );
   @override
-  Future<void> introduce({required Device recipient, required Device peer, required RsCancellationToken token, String? pin}) async {
+  Future<void> introduce({
+    required Device recipient,
+    required Device peer,
+    required RsCancellationToken token,
+    String? pin,
+    PairingRole? role,
+  }) async {
     attempts.add(recipient.alias);
+    roles.add(role);
+    introducedPeer = peer;
     if (recipient.alias == 'Second PC' && failB) {
       failB = false;
       throw StateError('Connection failed');
@@ -224,21 +235,64 @@ void main() {
     await scan(1, 'http://192.168.1.20:54322');
     await tester.tap(find.text(t.desktopPairing.connect));
     await tester.pumpAndSettle();
-    expect(pairing.attempts, ['First PC', 'Second PC']);
+    expect(pairing.attempts, ['Second PC']);
     expect(find.text(t.desktopPairing.done), findsNothing);
     await tester.tap(find.text(t.qrScanPage.retryConnection));
     await tester.pumpAndSettle();
-    expect(pairing.attempts, ['First PC', 'Second PC', 'Second PC']);
+    expect(pairing.attempts, ['Second PC', 'Second PC', 'First PC']);
+    expect(pairing.roles, [PairingRole.receive, PairingRole.receive, PairingRole.send]);
     expect(find.text(t.desktopPairing.done), findsOneWidget);
     expect(tester.takeException(), isNull);
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
-  testWidgets('scanner provides an entry to connect two computers', (tester) async {
-    await tester.pumpWidget(RefenaScope(child: const MaterialApp(home: QrScanPage())));
+  testWidgets('send-only scanner returns address without another role confirmation', (tester) async {
+    QrConnectionInfo? result;
+    await tester.pumpWidget(
+      RefenaScope(
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () async {
+                  result = await Navigator.of(
+                    context,
+                  ).push<QrConnectionInfo>(MaterialPageRoute(builder: (_) => const QrScanPage(mode: QrScanMode.send)));
+                },
+                child: const Text('Scan'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Scan'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip(t.desktopPairing.title));
+    scanner.detect('http://192.168.1.20:54321');
     await tester.pumpAndSettle();
-    expect(find.byType(DesktopPairingPage), findsOneWidget);
+    expect(result!.ip, '192.168.1.20');
+    expect(result!.port, 54321);
+    expect(find.byType(QrScanPage), findsNothing);
+  });
+
+  testWidgets('receive-only scanner requests sending and waits, without send button', (tester) async {
+    final service = _PairingService()..failB = false;
+    final scope = RefenaScope(
+      overrides: [
+        desktopPairingProvider.overrideWithValue(service),
+        deviceFullInfoProvider.overrideWithBuilder((_) => _localDevice),
+      ],
+      child: const MaterialApp(home: QrScanPage(mode: QrScanMode.receive)),
+    );
+    await tester.pumpWidget(scope);
+    await tester.pumpAndSettle();
+    scanner.detect('http://192.168.1.20:54321');
+    await tester.pumpAndSettle();
+    expect(service.attempts, ['Second PC']);
+    expect(service.roles, [PairingRole.send]);
+    expect(service.introducedPeer!.fingerprint, _localDevice.fingerprint);
+    expect(find.text(t.qrScanPage.receiveWaiting(alias: 'Second PC')), findsOneWidget);
+    expect(find.byIcon(Icons.send), findsNothing);
+    await tester.pumpWidget(const SizedBox());
   });
 
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS, TargetPlatform.macOS]) {
@@ -351,8 +405,7 @@ void main() {
       } else {
         scanner.detect('http://192.168.1.20:54321/?pin=1234');
         await tester.pumpAndSettle();
-        await tester.tap(find.text(t.sendTab.title));
-        await tester.pumpAndSettle();
+
         expect(client.ip, '192.168.1.20');
         expect(client.port, 54321);
         expect(client.protocol, rust_model.ProtocolType.http);

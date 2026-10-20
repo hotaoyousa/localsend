@@ -97,6 +97,8 @@ class TranslationsZhTw extends Translations with BaseTranslations<AppLocale, Tra
   late final Translations$assetPicker$zh_TW assetPicker = Translations$assetPicker$zh_TW.internal(_root);
   @override
   late final Translations$desktopPairing$zh_TW desktopPairing = Translations$desktopPairing$zh_TW.internal(_root);
+  @override
+  late final Translations$qrConnection$zh_TW qrConnection = Translations$qrConnection$zh_TW.internal(_root);
 }
 
 // Path: qrScanPage
@@ -802,11 +804,11 @@ class Translations$desktopPairing$zh_TW extends Translations$desktopPairing$en {
   @override
   String get title => '連接兩台電腦';
   @override
-  String get instructions => '在兩台電腦上開啟 LocalSend 並顯示接收連結 QR 碼。依次掃描電腦 A、電腦 B，再於兩台電腦確認連接邀請。三台裝置需處於電腦之間可直接存取的網路。';
+  String get instructions => '兩台電腦進入「掃碼連接」，選擇相同區域網路的 QR 碼。先掃描傳送端 A，再掃描接收端 B；連接後 A 選擇檔案，B 等待接收。';
   @override
-  String get computerA => '電腦 A';
+  String get computerA => '電腦 A · 傳送端';
   @override
-  String get computerB => '電腦 B';
+  String get computerB => '電腦 B · 接收端';
   @override
   String get notScanned => '掃描這台電腦的 QR 碼';
   @override
@@ -816,15 +818,56 @@ class Translations$desktopPairing$zh_TW extends Translations$desktopPairing$en {
   @override
   String get directTransfer => '手機只交換連接資訊，檔案在兩台電腦之間直接傳輸。';
   @override
-  String get confirmOnComputers => '請在兩台電腦確認邀請，並保持 QR 碼視窗開啟。';
+  String get confirmOnComputers => '正在準備 B 接收端，再連接 A 傳送端，無需在電腦選擇角色。';
   @override
   String get connected => '已確認連接';
   @override
-  String get done => '兩台電腦已連接。關閉電腦的 QR 碼視窗，在「傳送」頁選擇另一台電腦即可傳檔案。';
+  String get done => '連接完成，請在電腦 A 選擇檔案，電腦 B 將等待接收。';
   @override
-  String get failed => '連接未完成。請確認掃描兩台不同電腦，均執行此版本並開啟 QR 碼視窗，且網路允許直接連接，再重試未完成的一端。';
+  String get failed => '連接未完成。請確認兩台不同電腦均執行新版本並開啟「掃碼連接」，且網路允許直接連接，再重試。';
   @override
   String invitation({required Object phone, required Object peer}) => '${phone} 請求將本機與 ${peer} 連接。是否允許直接連接？';
+}
+
+// Path: qrConnection
+class Translations$qrConnection$zh_TW extends Translations$qrConnection$en {
+  Translations$qrConnection$zh_TW.internal(TranslationsZhTw root) : this._root = root, super.internal(root);
+
+  final TranslationsZhTw _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '掃碼連接';
+  @override
+  String get scanSend => '掃碼傳送';
+  @override
+  String get scanReceive => '掃碼接收';
+  @override
+  String get linkComputers => '連接電腦';
+  @override
+  String get sendHint => '掃描目標裝置，再選擇檔案傳送';
+  @override
+  String get receiveHint => '掃描對方裝置，等待對方傳送檔案';
+  @override
+  String get pairHint => '手機牽線，電腦 A 傳給電腦 B';
+  @override
+  String get myCode => '本機 QR 碼';
+  @override
+  String get chooseNetwork => '選擇與掃碼裝置處於同一區域網路的 QR 碼，保持此頁面開啟以建立連接。';
+  @override
+  String get showCode => '顯示 QR 碼';
+  @override
+  String get startServer => '開啟接收服務';
+  @override
+  String get noNetwork => '連接 Wi-Fi 或區域網路後即可顯示 QR 碼。';
+  @override
+  String get connecting => '正在建立連接…';
+  @override
+  String waiting({required Object peer}) => '等待 ${peer} 傳送檔案';
+  @override
+  String readySend({required Object peer}) => '選擇檔案，傳送給 ${peer}';
+  @override
+  String get autoReceive => '等待期間將自動儲存這台裝置傳來的檔案，點擊取消可停止等待。';
 }
 
 // Path: receiveTab.infoBox

@@ -14,12 +14,14 @@ class QrDialog extends StatelessWidget {
   final String? label;
   final bool listenIncomingWebDownloadRequests;
   final String? pin;
+  final bool showSendRequest;
 
   const QrDialog({
     required this.data,
     this.label,
     this.listenIncomingWebDownloadRequests = false,
     this.pin,
+    this.showSendRequest = true,
   });
 
   @override
@@ -86,7 +88,7 @@ class QrDialog extends StatelessWidget {
                 ],
               ),
             ),
-          if (pendingRequest != null) QrSendRequestPrompt(device: pendingRequest),
+          if (showSendRequest && pendingRequest != null) QrSendRequestPrompt(device: pendingRequest),
         ],
       ),
       actions: [

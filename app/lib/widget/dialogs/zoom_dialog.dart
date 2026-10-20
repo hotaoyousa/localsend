@@ -12,11 +12,13 @@ class ZoomDialog extends StatelessWidget {
   final String label;
   final bool listenIncomingWebDownloadRequests;
   final String? pin;
+  final bool showSendRequest;
 
   const ZoomDialog({
     required this.label,
     this.listenIncomingWebDownloadRequests = false,
     this.pin,
+    this.showSendRequest = true,
   });
 
   @override
@@ -77,7 +79,7 @@ class ZoomDialog extends StatelessWidget {
                 }
               },
             ),
-          if (pendingRequest != null) QrSendRequestPrompt(device: pendingRequest),
+          if (showSendRequest && pendingRequest != null) QrSendRequestPrompt(device: pendingRequest),
         ],
       ),
       actions: [

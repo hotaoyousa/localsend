@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:localsend_app/pages/home_page.dart';
+import 'package:localsend_app/provider/qr_share_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 class HomePageVm {
@@ -15,10 +16,16 @@ class HomePageVm {
 }
 
 final homePageControllerProvider = ReduxProvider<HomePageController, HomePageVm>(
-  (ref) => HomePageController(),
+  (ref) => HomePageController(ref.notifier(qrShareProvider)),
 );
 
 class HomePageController extends ReduxNotifier<HomePageVm> {
+  final QrShareService _qr;
+  HomePageController(this._qr);
+  void updateQrListening(HomeTab tab) {
+    _qr.setHubActive(tab == HomeTab.qrConnection);
+  }
+
   @override
   HomePageVm init() {
     return HomePageVm(
@@ -37,6 +44,7 @@ class ChangeTabAction extends ReduxAction<HomePageController, HomePageVm> {
   @override
   HomePageVm reduce() {
     state.controller.jumpToPage(tab.index);
+    notifier.updateQrListening(tab);
     return HomePageVm(
       controller: state.controller,
       currentTab: tab,

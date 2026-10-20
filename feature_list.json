@@ -123,6 +123,25 @@
         "2026-10-20: Release https://github.com/hotaoyousa/localsend/releases/tag/phone-pairing-20261020 。四个安装工件服务端大小均与本地一致。尚无连接的 Android 真机或 Windows 实机完成三设备相互连接及实际收件验收，故不标记 passing。"
       ],
       "notes": "实现、自动化和三平台构建已完成；剩余验收：Android 手机扫码真实 Mac 与 Windows，双方确认后双向传输确定性文件并核对内容。当前无 USB Android 设备。"
+    },
+    {
+      "id": "qr_connection-002",
+      "priority": 1,
+      "area": "qr_connection",
+      "title": "独立扫码连接页与明确的发送接收角色",
+      "status": "blocked",
+      "user_visible_behavior": "扫码连接与接收、发送、设置同级；手机显示扫码发送/扫码接收/连接电脑，电脑只显示本机二维码。双电脑A发送、B接收，B就绪后A选文件，不再确认角色。",
+      "verification": [
+        "三平台页面、窄屏与四个导航入口测试通过。",
+        "扫码发送直接选文件，扫码接收自动等待，取消不会发送旧选择。",
+        "双电脑先B后A，角色自动分派，失败/中止不进入文件发送。",
+        "本地Android/macOS构建验证后替换旧产物，不上传GitHub；Windows需本地Windows主机。"
+      ],
+      "evidence": [
+        "2026-10-20: flutter analyze无问题，完整143项测试通过；含macOS/Windows实际ReceiveController角色流程12项和三平台布局/导航测试。",
+        "2026-10-20: Android arm64 Debug APK和macOS arm64 Release DMG/ZIP已本地构建并完整性验证；macOS严格签名验证通过。实际原生应用验证四个导航入口和地址列表，真实HTTP角色邀请两次204，发送端直接打开添加文件。用户选择暂不构建Windows新版，保留旧Windows包；未上传GitHub。"
+      ],
+      "notes": "界面、角色逻辑和Android/macOS产物已完成；暂缺Android真机与真实三设备收件验收。Windows本次按用户选择仅保留旧包并提供新版源码/本地构建脚本。"
     }
   ]
 }

@@ -99,6 +99,8 @@ class TranslationsZhCn extends Translations with BaseTranslations<AppLocale, Tra
   late final Translations$assetPicker$zh_CN assetPicker = Translations$assetPicker$zh_CN.internal(_root);
   @override
   late final Translations$desktopPairing$zh_CN desktopPairing = Translations$desktopPairing$zh_CN.internal(_root);
+  @override
+  late final Translations$qrConnection$zh_CN qrConnection = Translations$qrConnection$zh_CN.internal(_root);
 }
 
 // Path: qrScanPage
@@ -885,11 +887,11 @@ class Translations$desktopPairing$zh_CN extends Translations$desktopPairing$en {
   @override
   String get title => '连接两台电脑';
   @override
-  String get instructions => '在两台电脑上打开 LocalSend 并展示接收链接二维码。依次扫描电脑 A、电脑 B，再在两台电脑上确认连接邀请。三台设备需处于电脑之间能够直接访问的网络。';
+  String get instructions => '两台电脑进入「扫码连接」，选择同一局域网的二维码。先扫描发送端 A，再扫描接收端 B；建立连接后，A 自动打开文件选择，B 等待接收。';
   @override
-  String get computerA => '电脑 A';
+  String get computerA => '电脑 A · 发送端';
   @override
-  String get computerB => '电脑 B';
+  String get computerB => '电脑 B · 接收端';
   @override
   String get notScanned => '扫描这台电脑的二维码';
   @override
@@ -899,15 +901,56 @@ class Translations$desktopPairing$zh_CN extends Translations$desktopPairing$en {
   @override
   String get directTransfer => '手机只交换连接信息，文件在两台电脑之间直接传输。';
   @override
-  String get confirmOnComputers => '请在两台电脑上确认邀请，并保持二维码窗口打开。';
+  String get confirmOnComputers => '正在准备 B 接收端，再连接 A 发送端，无需在电脑上选择角色。';
   @override
   String get connected => '已确认连接';
   @override
-  String get done => '两台电脑已连接。关闭电脑的二维码窗口，在「发送」页选择另一台电脑即可传文件。';
+  String get done => '连接完成，请在电脑 A 选择文件，电脑 B 将等待接收。';
   @override
-  String get failed => '连接未完成。请确认扫描的是两台不同的电脑，均运行此版本并打开二维码窗口，且网络允许电脑直接连接，然后重试未完成的一端。';
+  String get failed => '连接未完成。请确认两台不同的电脑都运行新版本并打开「扫码连接」，且网络允许直连，然后重试。';
   @override
   String invitation({required Object phone, required Object peer}) => '${phone} 请求将本机与 ${peer} 连接。是否允许直接连接？';
+}
+
+// Path: qrConnection
+class Translations$qrConnection$zh_CN extends Translations$qrConnection$en {
+  Translations$qrConnection$zh_CN.internal(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '扫码连接';
+  @override
+  String get scanSend => '扫码发送';
+  @override
+  String get scanReceive => '扫码接收';
+  @override
+  String get linkComputers => '连接电脑';
+  @override
+  String get sendHint => '扫描目标设备，再选择文件发送';
+  @override
+  String get receiveHint => '扫描对方设备，等待对方发送文件';
+  @override
+  String get pairHint => '手机牵线，电脑 A 发给电脑 B';
+  @override
+  String get myCode => '本机二维码';
+  @override
+  String get chooseNetwork => '选择与扫码设备处于同一局域网的二维码，保持此页面打开以建立连接。';
+  @override
+  String get showCode => '显示二维码';
+  @override
+  String get startServer => '开启接收服务';
+  @override
+  String get noNetwork => '连接 Wi-Fi 或局域网后即可显示二维码。';
+  @override
+  String get connecting => '正在建立连接…';
+  @override
+  String waiting({required Object peer}) => '等待 ${peer} 发送文件';
+  @override
+  String readySend({required Object peer}) => '选择文件，发送给 ${peer}';
+  @override
+  String get autoReceive => '等待期间将自动保存这台设备发来的文件，点击取消可停止等待。';
 }
 
 // Path: receiveTab.infoBox

@@ -61,21 +61,24 @@ class QrSendRequestPrompt extends StatelessWidget {
 ///
 /// The files are sent with the regular sending flow, so the transfer is
 /// identical to picking the device from the device list.
-Future<void> _sendFilesTo(BuildContext context, Device device) async {
+Future<void> _sendFilesTo(BuildContext context, Device device) => sendFilesToDevice(context, device, closeQrDialog: true);
+
+Future<void> sendFilesToDevice(BuildContext context, Device device, {bool closeQrDialog = false, bool chooseFiles = false}) async {
   final ref = context.ref;
   ref.notifier(qrShareProvider).dismiss();
 
   // The QR code has been used; the user continues on the send page.
-  context.pop();
+  if (closeQrDialog) context.pop();
   ref.redux(homePageControllerProvider).dispatch(ChangeTabAction(HomeTab.send));
 
   var files = ref.read(selectedSendingFilesProvider);
-  if (files.isEmpty) {
+  final previousSelection = files;
+  if (chooseFiles || files.isEmpty) {
     await AddFileDialog.open(context: Routerino.context, options: FilePickerOption.getOptionsForPlatform());
     files = ref.read(selectedSendingFilesProvider);
   }
 
-  if (files.isEmpty) {
+  if (files.isEmpty || (chooseFiles && identical(previousSelection, files))) {
     return;
   }
 

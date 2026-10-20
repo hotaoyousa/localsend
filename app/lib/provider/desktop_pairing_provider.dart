@@ -29,7 +29,7 @@ class DesktopPairingService {
 
   DesktopPairingService({required this.ownDevice, required this.discovery, required this.pinned, required this.createToken});
 
-  Future<Device> discover(QrConnectionInfo endpoint) async {
+  Future<Device> discover(QrConnectionInfo endpoint, {bool computerOnly = true}) async {
     final result = await discovery().register(
       protocol: endpoint.https ? rust.ProtocolType.https : rust.ProtocolType.http,
       ip: endpoint.ip,
@@ -37,7 +37,7 @@ class DesktopPairingService {
       payload: ownDevice().toRegisterDto(),
     );
     final device = result.body.toDevice(endpoint.ip, endpoint.port, endpoint.https);
-    if (device.deviceType != DeviceType.desktop ||
+    if ((computerOnly && device.deviceType != DeviceType.desktop) ||
         device.fingerprint.toUpperCase() == ownDevice().fingerprint.toUpperCase() ||
         DesktopPairingInvitation.decode(DesktopPairingInvitation.fromDevice(device).encode()) == null) {
       throw StateError('Not a supported remote computer');
@@ -45,10 +45,16 @@ class DesktopPairingService {
     return device;
   }
 
-  /// Returns only after the recipient explicitly accepts and can reach its peer.
-  Future<void> introduce({required Device recipient, required Device peer, required RsCancellationToken token, String? pin}) async {
+  /// Returns only after the recipient accepts the selected role and reaches its peer.
+  Future<void> introduce({
+    required Device recipient,
+    required Device peer,
+    required RsCancellationToken token,
+    String? pin,
+    PairingRole? role,
+  }) async {
     if (recipient.fingerprint.toUpperCase() == peer.fingerprint.toUpperCase()) throw StateError('Same computer');
-    final invitation = DesktopPairingInvitation.fromDevice(peer).encode();
+    final invitation = DesktopPairingInvitation.fromDevice(peer, role: role).encode();
     final timer = Timer(const Duration(minutes: 2), token.cancel);
     try {
       final result = await pinned(recipient.fingerprint, 120000).prepareUpload(

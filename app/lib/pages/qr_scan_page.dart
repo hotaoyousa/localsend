@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/pages/desktop_pairing_page.dart';
+import 'package:localsend_app/provider/desktop_pairing_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/http_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
+import 'package:localsend_app/provider/qr_share_provider.dart';
+import 'package:localsend_app/util/desktop_pairing_invitation.dart';
 import 'package:localsend_app/util/qr_connection_info.dart';
 import 'package:localsend_app/util/ui/snackbar.dart';
+import 'package:localsend_isolates/rust/api/cancel.dart';
 import 'package:localsend_isolates/rust/api/model.dart';
 import 'package:localsend_isolates/util/rust.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -28,9 +33,12 @@ enum _ReceiveState {
   failed,
 }
 
+enum QrScanMode { choose, send, receive }
+
 class QrScanPage extends StatefulWidget {
   final bool selectComputer;
-  const QrScanPage({this.selectComputer = false});
+  final QrScanMode mode;
+  const QrScanPage({this.selectComputer = false, this.mode = QrScanMode.choose});
 
   @override
   State<QrScanPage> createState() => _QrScanPageState();
@@ -39,7 +47,15 @@ class QrScanPage extends StatefulWidget {
 class _QrScanPageState extends State<QrScanPage> with Refena {
   QrConnectionInfo? _connection;
   bool _invalidCode = false;
-  bool _pairingOpen = false;
+  RsCancellationToken? _receiveToken;
+
+  @override
+  void dispose() {
+    _receiveToken?.cancel();
+    if (widget.mode == QrScanMode.receive) ref.notifier(qrShareProvider).resetConnection();
+    super.dispose();
+  }
+
   int _scannerGeneration = 0;
   _ReceiveState _receiveState = _ReceiveState.idle;
 
@@ -65,6 +81,16 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
           _receiveState = _ReceiveState.idle;
           _receiveAlias = null;
         });
+        if (!widget.selectComputer && widget.mode != QrScanMode.choose) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            if (widget.mode == QrScanMode.send) {
+              Navigator.of(context).pop(connection);
+            } else {
+              unawaited(_requestReceive(connection));
+            }
+          });
+        }
         return;
       }
     }
@@ -75,6 +101,9 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
   }
 
   void _scanAgain() {
+    _receiveToken?.cancel();
+    _receiveToken = null;
+    if (widget.mode == QrScanMode.receive) ref.notifier(qrShareProvider).resetConnection();
     setState(() {
       _connection = null;
       _invalidCode = false;
@@ -84,13 +113,10 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
     });
   }
 
-  /// Announces the address of this device to the scanned device, so that it can
-  /// send files here without the user entering an IP address.
-  ///
-  /// The announcement is the regular `register` request of the LocalSend
-  /// protocol, which carries the alias, port, protocol and fingerprint of this
-  /// device; the scanned device learns the IP from the connection itself.
+  /// In receive mode, asks the scanned peer to send using an explicit role.
+  /// The legacy chooser keeps the register-based request for older entry points.
   Future<void> _requestReceive(QrConnectionInfo connection) async {
+    final generation = _scannerGeneration;
     setState(() => _receiveState = _ReceiveState.requesting);
 
     try {
@@ -104,6 +130,36 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
         throw StateError('The local server is not running');
       }
 
+      if (widget.mode == QrScanMode.receive) {
+        final service = ref.read(desktopPairingProvider);
+        final target = await service.discover(connection, computerOnly: false);
+        if (!mounted || generation != _scannerGeneration) return;
+        final token = service.createToken();
+        _receiveToken = token;
+        ref.notifier(qrShareProvider).connectionFinished(peer: target, role: PairingRole.receive);
+        try {
+          await service.introduce(
+            recipient: target,
+            peer: ref.read(deviceFullInfoProvider),
+            token: token,
+            pin: connection.pin,
+            role: PairingRole.send,
+          );
+        } catch (_) {
+          if (mounted && generation == _scannerGeneration) ref.notifier(qrShareProvider).resetConnection();
+          rethrow;
+        } finally {
+          _receiveToken = null;
+        }
+        if (mounted && generation == _scannerGeneration) {
+          setState(() {
+            _receiveState = _ReceiveState.waiting;
+            _receiveAlias = target.alias;
+          });
+        }
+        return;
+      }
+
       final response = await ref
           .read(qrDiscoveryClientProvider)
           .register(
@@ -113,7 +169,7 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
             payload: device.toRegisterDto(),
           );
 
-      if (!mounted) {
+      if (!mounted || generation != _scannerGeneration) {
         return;
       }
       setState(() {
@@ -121,7 +177,7 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
         _receiveAlias = response.body.alias;
       });
     } catch (e) {
-      if (!mounted) {
+      if (!mounted || generation != _scannerGeneration) {
         return;
       }
       setState(() => _receiveState = _ReceiveState.failed);
@@ -134,29 +190,16 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
     final ip = connection?.ip;
     return Scaffold(
       appBar: AppBar(
-        title: Text(t.qrScanPage.title),
-        actions: [
-          if (!widget.selectComputer)
-            IconButton(
-              tooltip: t.desktopPairing.title,
-              icon: const Icon(Icons.devices),
-              onPressed: () async {
-                setState(() => _pairingOpen = true);
-                await Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) => const DesktopPairingPage()));
-                if (mounted) {
-                  setState(() {
-                    _pairingOpen = false;
-                    _scannerGeneration++;
-                  });
-                }
-              },
-            ),
-        ],
+        title: Text(
+          widget.mode == QrScanMode.send
+              ? t.qrConnection.scanSend
+              : widget.mode == QrScanMode.receive
+              ? t.qrConnection.scanReceive
+              : t.qrScanPage.title,
+        ),
       ),
       body: SafeArea(
-        child: _pairingOpen
-            ? const SizedBox.shrink()
-            : ip == null
+        child: ip == null
             ? Column(
                 children: [
                   Expanded(
@@ -211,11 +254,12 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
                       const SizedBox(height: 8),
                       Text(connection!.uri.toString(), textAlign: TextAlign.center),
                       const SizedBox(height: 20),
-                      FilledButton.icon(
-                        onPressed: () => Navigator.of(context).pop(connection),
-                        icon: const Icon(Icons.send),
-                        label: Text(widget.selectComputer ? t.desktopPairing.useComputer : t.sendTab.title),
-                      ),
+                      if (widget.mode != QrScanMode.receive)
+                        FilledButton.icon(
+                          onPressed: () => Navigator.of(context).pop(connection),
+                          icon: const Icon(Icons.send),
+                          label: Text(widget.selectComputer ? t.desktopPairing.useComputer : t.sendTab.title),
+                        ),
                       const SizedBox(height: 12),
                       if (!widget.selectComputer)
                         if (_receiveState == _ReceiveState.waiting)
