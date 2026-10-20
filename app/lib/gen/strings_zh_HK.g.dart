@@ -40,6 +40,8 @@ class TranslationsZhHk extends Translations with BaseTranslations<AppLocale, Tra
 
   // Translations
   @override
+  late final Translations$qrScanPage$zh_HK qrScanPage = Translations$qrScanPage$zh_HK.internal(_root);
+  @override
   String get appName => 'LocalSend';
   @override
   late final Translations$general$zh_HK general = Translations$general$zh_HK.internal(_root);
@@ -93,6 +95,39 @@ class TranslationsZhHk extends Translations with BaseTranslations<AppLocale, Tra
   late final Translations$web$zh_HK web = Translations$web$zh_HK.internal(_root);
   @override
   late final Translations$assetPicker$zh_HK assetPicker = Translations$assetPicker$zh_HK.internal(_root);
+  @override
+  late final Translations$desktopPairing$zh_HK desktopPairing = Translations$desktopPairing$zh_HK.internal(_root);
+}
+
+// Path: qrScanPage
+class Translations$qrScanPage$zh_HK extends Translations$qrScanPage$en {
+  Translations$qrScanPage$zh_HK.internal(TranslationsZhHk root) : this._root = root, super.internal(root);
+
+  final TranslationsZhHk _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get connectionFailed => '無法連線。請保持接收端 LocalSend 開啟，網絡或加密設定變更後重新掃描目前的二維碼。確認兩部裝置的 Wi-Fi 可以互通，並檢查 VPN、訪客網絡隔離及防火牆設定。';
+  @override
+  String get retryConnection => '重試連線';
+  @override
+  String get title => '掃描 QR 碼';
+  @override
+  String get instruction => '掃描 LocalSend 的連結 QR 碼，向對應裝置傳送檔案，或接收來自該裝置的檔案。';
+  @override
+  String get invalidCode => '此 QR 碼未包含具有有效 IP 位址的連結，請掃描其他 QR 碼。';
+  @override
+  String get deviceIp => '裝置 IP 位址';
+  @override
+  String get scanAgain => '重新掃描';
+  @override
+  String get permissionDenied => '請在設定中允許存取相機，然後重新掃描。';
+  @override
+  String get cameraError => '無法啟動相機，請重試。';
+  @override
+  String get receive => '接收檔案';
+  @override
+  String receiveWaiting({required Object alias}) => '已通知「${alias}」，正在等待對方傳送檔案，請保持 LocalSend 開啟。';
 }
 
 // Path: general
@@ -757,6 +792,41 @@ class Translations$assetPicker$zh_HK extends Translations$assetPicker$en {
   String get sUnitAssetCountLabel => '數量';
 }
 
+// Path: desktopPairing
+class Translations$desktopPairing$zh_HK extends Translations$desktopPairing$en {
+  Translations$desktopPairing$zh_HK.internal(TranslationsZhHk root) : this._root = root, super.internal(root);
+
+  final TranslationsZhHk _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '連接兩台電腦';
+  @override
+  String get instructions => '在兩台電腦上開啟 LocalSend 並顯示接收連結 QR 碼。依次掃描電腦 A、電腦 B，再於兩台電腦確認連接邀請。三台裝置需處於電腦之間可直接存取的網路。';
+  @override
+  String get computerA => '電腦 A';
+  @override
+  String get computerB => '電腦 B';
+  @override
+  String get notScanned => '掃描這台電腦的 QR 碼';
+  @override
+  String get useComputer => '使用這台電腦';
+  @override
+  String get connect => '建立連接';
+  @override
+  String get directTransfer => '手機只交換連接資訊，檔案在兩台電腦之間直接傳輸。';
+  @override
+  String get confirmOnComputers => '請在兩台電腦確認邀請，並保持 QR 碼視窗開啟。';
+  @override
+  String get connected => '已確認連接';
+  @override
+  String get done => '兩台電腦已連接。關閉電腦的 QR 碼視窗，在「傳送」頁選擇另一台電腦即可傳檔案。';
+  @override
+  String get failed => '連接未完成。請確認掃描兩台不同電腦，均執行此版本並開啟 QR 碼視窗，且網路允許直接連接，再重試未完成的一端。';
+  @override
+  String invitation({required Object phone, required Object peer}) => '\$${phone} 請求將本機與 \$${peer} 連接。是否允許直接連接？';
+}
+
 // Path: receiveTab.infoBox
 class Translations$receiveTab$infoBox$zh_HK extends Translations$receiveTab$infoBox$en {
   Translations$receiveTab$infoBox$zh_HK.internal(TranslationsZhHk root) : this._root = root, super.internal(root);
@@ -1394,6 +1464,10 @@ class Translations$dialogs$qr$zh_HK extends Translations$dialogs$qr$en {
   // Translations
   @override
   String get title => 'QR Code';
+  @override
+  String sendRequest({required Object alias}) => '「${alias}」掃描了此 QR 碼，希望接收檔案。';
+  @override
+  String get sendFiles => '選擇檔案並傳送';
 }
 
 // Path: dialogs.quickActions

@@ -50,9 +50,12 @@ PODS:
   - in_app_purchase_storekit (0.0.1):
     - Flutter
     - FlutterMacOS
+  - mobile_scanner (7.0.0):
+    - Flutter
+    - FlutterMacOS
   - network_info_plus (0.0.1):
     - Flutter
-  - open_filex (0.0.2):
+  - open_file_ios (1.0.3):
     - Flutter
   - package_info_plus (0.4.5):
     - Flutter
@@ -102,8 +105,9 @@ DEPENDENCIES:
   - gal (from `.symlinks/plugins/gal/darwin`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
+  - mobile_scanner (from `.symlinks/plugins/mobile_scanner/darwin`)
   - network_info_plus (from `.symlinks/plugins/network_info_plus/ios`)
-  - open_filex (from `.symlinks/plugins/open_filex/ios`)
+  - open_file_ios (from `.symlinks/plugins/open_file_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - pasteboard (from `.symlinks/plugins/pasteboard/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -144,10 +148,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   in_app_purchase_storekit:
     :path: ".symlinks/plugins/in_app_purchase_storekit/darwin"
+  mobile_scanner:
+    :path: ".symlinks/plugins/mobile_scanner/darwin"
   network_info_plus:
     :path: ".symlinks/plugins/network_info_plus/ios"
-  open_filex:
-    :path: ".symlinks/plugins/open_filex/ios"
+  open_file_ios:
+    :path: ".symlinks/plugins/open_file_ios/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   pasteboard:
@@ -187,8 +193,9 @@ SPEC CHECKSUMS:
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
+  mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
   network_info_plus: cf61925ab5205dce05a4f0895989afdb6aade5fc
-  open_filex: 432f3cd11432da3e39f47fcc0df2b1603854eff1
+  open_file_ios: c1143c28b4c65f721cdd58d9fba2f7a1c55206cd
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   pasteboard: 49088aeb6119d51f976a421db60d8e1ab079b63c
   permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
@@ -207,4 +214,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 3a4ace682762b60a381ecc086ce3de34ab033988
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0

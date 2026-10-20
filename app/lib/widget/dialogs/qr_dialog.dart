@@ -3,6 +3,8 @@ import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/state/send/web/web_download_state.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
+import 'package:localsend_app/provider/qr_share_provider.dart';
+import 'package:localsend_app/widget/dialogs/qr_send_request_prompt.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
@@ -28,6 +30,7 @@ class QrDialog extends StatelessWidget {
     } else {
       webDownloadState = null;
     }
+    final pendingRequest = context.ref.watch(qrShareProvider).pendingRequest;
 
     return AlertDialog(
       title: Text(t.dialogs.qr.title),
@@ -83,6 +86,7 @@ class QrDialog extends StatelessWidget {
                 ],
               ),
             ),
+          if (pendingRequest != null) QrSendRequestPrompt(device: pendingRequest),
         ],
       ),
       actions: [

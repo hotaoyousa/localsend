@@ -1,0 +1,123 @@
+{
+  "project": "LocalSend",
+  "last_updated": "2026-10-20",
+  "rules": {
+    "single_active_feature": true,
+    "passing_requires_evidence": true,
+    "do_not_skip_verification": true
+  },
+  "status_legend": {
+    "not_started": "功能还没开始做。",
+    "in_progress": "这个功能是当前唯一正在进行的任务。",
+    "blocked": "因为已记录的阻塞问题，当前无法继续推进。",
+    "passing": "要求的验证已经通过，并且证据已经记录。"
+  },
+  "features": [
+    {
+      "id": "scan-001",
+      "priority": 1,
+      "area": "scan",
+      "title": "在发送界面添加二维码扫描入口",
+      "user_visible_behavior": "用户点击扫码按钮后，可以打开二维码扫描界面。",
+      "status": "passing",
+      "verification": [
+        "打开应用并进入发送界面。",
+        "点击二维码扫描按钮。",
+        "确认二维码扫描界面成功打开。"
+      ],
+      "evidence": [
+        "2026-09-30: fvm flutter test --no-pub test/widget/qr_scan_page_test.dart 通过7项测试；真实 SendTab 在 Android/iOS 平台变体、320px 宽度下点击紧邻手动 IP 的扫码按钮后进入 QrScanPage；macOS 不显示该按钮。相机使用测试平台替身，非真机验收。"
+      ],
+      "notes": "扫描入口应放在现有手动 IP 发送入口附近。"
+    },
+    {
+      "id": "scan-002",
+      "priority": 2,
+      "area": "scan",
+      "title": "扫描并识别 LocalSend 连接二维码",
+      "user_visible_behavior": "用户扫描有效二维码后，应用能够识别其中的 LocalSend 连接信息，并继续进入发送流程。",
+      "status": "passing",
+      "verification": [
+        "打开二维码扫描界面。",
+        "扫描一个包含有效 LocalSend 连接信息的二维码。",
+        "确认二维码被成功识别。",
+        "确认应用取得目标设备的连接信息。"
+      ],
+      "evidence": [
+        "2026-09-30: 二维码解析及页面测试13项通过，覆盖 IP/协议/非默认端口、PIN 链接、IPv6、非法二维码、确认后返回连接信息。扫码输入使用插件事件替身；尚待 USB 手机完成真实摄像头验收，见 progress.md。",
+        "2026-09-30: Android真机扫码Mac当前二维码并发送32 MiB测试文件；Mac收件与源文件逐字节一致，日志上传0.532秒、成功结束。验收平台为Android，iOS仅有此前编译及自动化验证。"
+      ],
+      "notes": "内部可能包含二维码解析、提取 IP 地址和保存目标设备信息等步骤。"
+    },
+    {
+      "id": "scan-003",
+      "priority": 3,
+      "area": "scan",
+      "title": "通过扫码结果完成文件发送",
+      "user_visible_behavior": "扫描二维码后，用户可以选择文件并直接发送到二维码对应的设备，无需手动输入 IP 地址。",
+      "status": "passing",
+      "verification": [
+        "扫描目标设备的二维码。",
+        "选择一个测试文件。",
+        "发送文件。",
+        "确认目标设备收到文件。"
+      ],
+      "evidence": [
+        "2026-09-30: 完整 Flutter 测试95项通过；本轮扫码相关23项冒烟通过，覆盖 Android/iOS 原有选文件与发送调度、已选文件、取消、不可达目标、IP/端口/协议保留。相机、网络及发送服务为测试替身，尚未证明真实文件到达。",
+        "2026-09-30: Android debug APK 构建成功并安装到 USB 手机；iOS 无签名原生构建通过（本地 Xcode27 使用命令行目标版本覆盖，见 progress.md）。Android 日志显示已连接 Mac LocalSend1.18.2，并完成3字节文本发送；文件落盘验收尚待用户发送准备的测试文件。",
+        "2026-09-30: Android真机扫码Mac当前二维码并发送32 MiB测试文件；Mac收件与源文件逐字节一致，日志上传0.532秒、成功结束。验收平台为Android，iOS仅有此前编译及自动化验证。"
+      ],
+      "notes": "应尽量复用现有手动 IP 和文件发送流程，而不是新增独立传输协议。"
+    },
+    {
+      "id": "phone_receive-001",
+      "priority": 1,
+      "area": "phone_receive",
+      "title": "手机扫码后作为接收方",
+      "user_visible_behavior": "扫描二维码后，用户可以点击接收按钮，后台将自动发送手机IP到二维码端，并等待接收来自其的文件，无需手动输入 IP 地址。",
+      "status": "blocked",
+      "verification": [
+        "扫描目标设备的二维码。",
+        "手机选择接收按钮",
+        "确认二维码设备收到IP地址。"
+      ],
+      "evidence": [
+        "2026-09-30: 二维码接收 4 个 Android/iOS 平台变体测试通过，覆盖可达目标、失败重试、register 载荷端口/协议/别名/指纹及“不启动发送会话”；完整 Flutter 测试 104 项通过，Android arm64 debug APK 构建成功。尚无 ADB 真机，未验证手机实际接收文件。"
+      ],
+      "notes": "应尽量复用现有手动 IP 和文件发送流程，而不是新增独立传输协议。"
+    },
+    {
+      "id": "phone_receive-002",
+      "priority": 2,
+      "area": "phone_receive",
+      "title": "二维码端设备作为发送端",
+      "user_visible_behavior": "二维码端需要接收手机发送的 IP 地址，然后跳转到发送界面选择文件发送过去",
+      "status": "blocked",
+      "verification": [
+        "扫描目标设备的二维码。",
+        "二维码端作为发送端，选择文件发送按钮",
+        "确认二维码设备收到IP地址。"
+      ],
+      "evidence": [
+        "2026-09-30: QR dialog/provider 自动化验证通过，覆盖二维码打开期间收到 register 时显示“选择文件并发送”、取消、同一次二维码会话去重；无预选文件时打开原有文件选择器，选择后再调用原 sendProvider 发送。完整 Flutter 测试 104 项通过。尚无更新的二维码端真机及手机收件端，未验证反向文件实际到达。",
+        "2026-10-01: 同一二维码回传流程增加 Windows TargetPlatform 变体并全部通过；Windows 与 macOS 共用共享 Flutter UI/发送逻辑。完整测试更新为 105 项通过，并生成通过隐藏启动验证的 macOS arm64 本地 DMG/ZIP。仍未在 Windows 主机编译 EXE/MSIX，也未完成手机实际收件。"
+      ],
+      "notes": "这个二维码端是全部的平台都需要改，此时如果有真机测试，暂时先搞真机的平台；当前因 ADB 无设备且 macOS 调试构建未完成而阻塞真机闭环。"
+    },
+    {
+      "id": "desktop_pairing-001",
+      "priority": 1,
+      "area": "desktop_pairing",
+      "title": "手机扫码协助两台电脑直接连接",
+      "status": "in_progress",
+      "user_visible_behavior": "手机扫描两台电脑并发送连接邀请，电脑确认后直接互相注册，在发送页选择对方传文件。",
+      "verification": [
+        "Android 扫描两台不同电脑；重复设备拒绝。",
+        "macOS/Windows 确认或拒绝邀请，分别显示完成状态并可重试。",
+        "两台电脑直接传输文件，校对收件；手机不传文件数据。",
+        "生成 Android/macOS/Windows 可测试构建。"
+      ],
+      "evidence": []
+    }
+  ]
+}

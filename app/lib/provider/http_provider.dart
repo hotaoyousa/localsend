@@ -27,12 +27,13 @@ class HttpClientCollection {
   /// The check happens during the TLS handshake, so a different peer never
   /// receives the request. Use this for everything that carries file data or
   /// belongs to a session with a device the user has picked.
-  RsHttpClient pinnedTo(String fingerprint) {
+  RsHttpClient pinnedTo(String fingerprint, {int? timeoutMs}) {
     return createClient(
       privateKey: _privateKey,
       cert: _certificate,
       version: LsHttpClientVersion.v2,
       expectedFingerprint: fingerprint,
+      timeoutMs: timeoutMs,
     );
   }
 }
@@ -49,5 +50,19 @@ final httpProvider = ViewProvider((ref) {
       version: LsHttpClientVersion.v2,
       expectedFingerprint: null,
     ),
+  );
+});
+
+/// Bound QR registration at the native client so an unreachable endpoint does
+/// not leave a request running after the connection dialog can be retried.
+/// Uploads keep using the existing pinned client without this request timeout.
+final qrDiscoveryClientProvider = ViewProvider((ref) {
+  final securityContext = ref.watch(securityProvider);
+  return createClient(
+    privateKey: securityContext.privateKey,
+    cert: securityContext.certificate,
+    version: LsHttpClientVersion.v2,
+    expectedFingerprint: null,
+    timeoutMs: 5000,
   );
 });

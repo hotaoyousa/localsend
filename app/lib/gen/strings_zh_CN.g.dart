@@ -40,6 +40,8 @@ class TranslationsZhCn extends Translations with BaseTranslations<AppLocale, Tra
 
   // Translations
   @override
+  late final Translations$qrScanPage$zh_CN qrScanPage = Translations$qrScanPage$zh_CN.internal(_root);
+  @override
   String get appName => 'LocalSend';
   @override
   late final Translations$general$zh_CN general = Translations$general$zh_CN.internal(_root);
@@ -95,6 +97,39 @@ class TranslationsZhCn extends Translations with BaseTranslations<AppLocale, Tra
   late final Translations$web$zh_CN web = Translations$web$zh_CN.internal(_root);
   @override
   late final Translations$assetPicker$zh_CN assetPicker = Translations$assetPicker$zh_CN.internal(_root);
+  @override
+  late final Translations$desktopPairing$zh_CN desktopPairing = Translations$desktopPairing$zh_CN.internal(_root);
+}
+
+// Path: qrScanPage
+class Translations$qrScanPage$zh_CN extends Translations$qrScanPage$en {
+  Translations$qrScanPage$zh_CN.internal(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get connectionFailed => '无法连接。请保持接收端 LocalSend 打开，网络或加密设置改变后重新扫描当前二维码。确认两台设备的 Wi-Fi 可以互通，并检查 VPN、访客网络隔离及防火墙设置。';
+  @override
+  String get retryConnection => '重试连接';
+  @override
+  String get title => '扫描二维码';
+  @override
+  String get instruction => '扫描 LocalSend 的链接二维码，向对应设备发送文件，或接收来自该设备的文件。';
+  @override
+  String get invalidCode => '此二维码未包含带有效 IP 地址的链接，请扫描其他二维码。';
+  @override
+  String get deviceIp => '设备 IP 地址';
+  @override
+  String get scanAgain => '重新扫描';
+  @override
+  String get permissionDenied => '请在设置中允许访问相机，然后重新扫描。';
+  @override
+  String get cameraError => '无法启动相机，请重试。';
+  @override
+  String get receive => '接收文件';
+  @override
+  String receiveWaiting({required Object alias}) => '已通知「${alias}」，正在等待对方发送文件，请保持 LocalSend 打开。';
 }
 
 // Path: general
@@ -840,6 +875,41 @@ class Translations$assetPicker$zh_CN extends Translations$assetPicker$en {
   String get sUnitAssetCountLabel => '计数';
 }
 
+// Path: desktopPairing
+class Translations$desktopPairing$zh_CN extends Translations$desktopPairing$en {
+  Translations$desktopPairing$zh_CN.internal(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '连接两台电脑';
+  @override
+  String get instructions => '在两台电脑上打开 LocalSend 并展示接收链接二维码。依次扫描电脑 A、电脑 B，再在两台电脑上确认连接邀请。三台设备需处于电脑之间能够直接访问的网络。';
+  @override
+  String get computerA => '电脑 A';
+  @override
+  String get computerB => '电脑 B';
+  @override
+  String get notScanned => '扫描这台电脑的二维码';
+  @override
+  String get useComputer => '使用这台电脑';
+  @override
+  String get connect => '建立连接';
+  @override
+  String get directTransfer => '手机只交换连接信息，文件在两台电脑之间直接传输。';
+  @override
+  String get confirmOnComputers => '请在两台电脑上确认邀请，并保持二维码窗口打开。';
+  @override
+  String get connected => '已确认连接';
+  @override
+  String get done => '两台电脑已连接。关闭电脑的二维码窗口，在「发送」页选择另一台电脑即可传文件。';
+  @override
+  String get failed => '连接未完成。请确认扫描的是两台不同的电脑，均运行此版本并打开二维码窗口，且网络允许电脑直接连接，然后重试未完成的一端。';
+  @override
+  String invitation({required Object phone, required Object peer}) => '\$${phone} 请求将本机与 \$${peer} 连接。是否允许直接连接？';
+}
+
 // Path: receiveTab.infoBox
 class Translations$receiveTab$infoBox$zh_CN extends Translations$receiveTab$infoBox$en {
   Translations$receiveTab$infoBox$zh_CN.internal(TranslationsZhCn root) : this._root = root, super.internal(root);
@@ -1476,6 +1546,10 @@ class Translations$dialogs$qr$zh_CN extends Translations$dialogs$qr$en {
   // Translations
   @override
   String get title => '二维码';
+  @override
+  String sendRequest({required Object alias}) => '「${alias}」扫描了此二维码，希望接收文件。';
+  @override
+  String get sendFiles => '选择文件并发送';
 }
 
 // Path: dialogs.quickActions

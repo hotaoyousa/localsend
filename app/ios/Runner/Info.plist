@@ -139,6 +139,8 @@
     <true/>
 
     <!-- Permissions -->
+    <key>NSCameraUsageDescription</key>
+    <string>Scan LocalSend link QR codes to send files to another device.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>The app needs photo library access so that the user can select photos to share.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>

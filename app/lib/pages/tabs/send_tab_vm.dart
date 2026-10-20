@@ -4,6 +4,7 @@ import 'package:localsend_app/model/cross_file.dart';
 import 'package:localsend_app/model/persistence/favorite_device.dart';
 import 'package:localsend_app/model/send_mode.dart';
 import 'package:localsend_app/pages/progress_page.dart';
+import 'package:localsend_app/pages/qr_scan_page.dart';
 import 'package:localsend_app/pages/send_page.dart';
 import 'package:localsend_app/pages/tabs/send_tab.dart';
 import 'package:localsend_app/pages/web_share_page.dart';
@@ -14,6 +15,7 @@ import 'package:localsend_app/provider/network/scan_facade.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/util/qr_connection_info.dart';
 import 'package:localsend_app/widget/dialogs/add_file_dialog.dart';
 import 'package:localsend_app/widget/dialogs/address_input_dialog.dart';
 import 'package:localsend_app/widget/dialogs/favorite_dialog.dart';
@@ -29,6 +31,7 @@ class SendTabVm {
   final Iterable<Device> nearbyDevices;
   final List<FavoriteDevice> favoriteDevices;
   final Future<void> Function(BuildContext context) onTapAddress;
+  final Future<void> Function(BuildContext context) onTapQr;
   final Future<void> Function(BuildContext context) onTapFavorite;
   final Future<void> Function(BuildContext context, SendMode mode) onTapSendMode;
   final Future<void> Function(BuildContext context, Device device) onTapDevice;
@@ -41,6 +44,7 @@ class SendTabVm {
     required this.nearbyDevices,
     required this.favoriteDevices,
     required this.onTapAddress,
+    required this.onTapQr,
     required this.onTapFavorite,
     required this.onTapSendMode,
     required this.onTapDevice,
@@ -88,6 +92,33 @@ final sendTabVmProvider = ViewProvider((ref) {
               background: false,
             );
       }
+    },
+    onTapQr: (context) async {
+      final QrConnectionInfo? address = await context.push(() => const QrScanPage());
+      if (address == null || !context.mounted) {
+        return;
+      }
+
+      final device = await showDialog<Device>(
+        context: context,
+        builder: (_) => AddressInputDialog(initialAddress: address),
+      );
+      if (device == null || !context.mounted) {
+        return;
+      }
+
+      if (ref.read(selectedSendingFilesProvider).isEmpty) {
+        await AddFileDialog.open(context: context, options: pickerOptions);
+      }
+      if (!context.mounted) {
+        return;
+      }
+      final files = ref.read(selectedSendingFilesProvider);
+      if (files.isEmpty) {
+        return;
+      }
+
+      await ref.notifier(sendProvider).startSession(target: device, files: files, background: false);
     },
     onTapFavorite: (context) async {
       final device = await showDialog<Device?>(

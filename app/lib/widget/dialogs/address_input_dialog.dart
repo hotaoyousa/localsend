@@ -10,6 +10,7 @@ import 'package:localsend_app/provider/http_provider.dart';
 import 'package:localsend_app/provider/last_devices.provider.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/util/qr_connection_info.dart';
 import 'package:localsend_app/widget/dialogs/error_dialog.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:localsend_isolates/rust/api/model.dart';
@@ -33,7 +34,10 @@ enum _InputMode {
 /// A dialog to input an hash or address.
 /// Pops the dialog with the device if found.
 class AddressInputDialog extends StatefulWidget {
-  const AddressInputDialog();
+  /// A scanned endpoint connects immediately, retaining its port and protocol.
+  final QrConnectionInfo? initialAddress;
+
+  const AddressInputDialog({this.initialAddress});
 
   @override
   State<AddressInputDialog> createState() => _AddressInputDialogState();
@@ -45,6 +49,23 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
   String _input = '';
   bool _fetching = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final address = widget.initialAddress;
+    if (address != null) {
+      _mode = _InputMode.ip;
+      _selected[_InputMode.hashtag.index] = false;
+      _selected[_InputMode.ip.index] = true;
+      _input = address.ip;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          unawaited(_submit(const [], address.port));
+        }
+      });
+    }
+  }
 
   Future<void> _submit(List<String> localIps, int port, [String? candidate]) async {
     final List<String> candidates;
@@ -59,9 +80,10 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
 
     setState(() {
       _fetching = true;
+      _error = null;
     });
 
-    final https = ref.read(settingsProvider).https;
+    final https = widget.initialAddress?.https ?? ref.read(settingsProvider).https;
 
     final deviceCompleter = Completer<void>();
     Device? foundDevice;
@@ -73,15 +95,13 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
       for (final ip in candidates)
         () async {
           try {
-            final response = await ref
-                .read(httpProvider)
-                .discovery
-                .register(
-                  protocol: https ? ProtocolType.https : ProtocolType.http,
-                  ip: ip,
-                  port: port,
-                  payload: payload,
-                );
+            final client = widget.initialAddress != null ? ref.read(qrDiscoveryClientProvider) : ref.read(httpProvider).discovery;
+            final response = await client.register(
+              protocol: https ? ProtocolType.https : ProtocolType.http,
+              ip: ip,
+              port: port,
+              payload: payload,
+            );
 
             foundDevice = response.body.toDevice(ip, port, https);
             deviceCompleter.complete();
@@ -121,6 +141,7 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
   Widget build(BuildContext context) {
     final localIps = (ref.watch(localIpProvider.select((info) => info.localIps))).uniqueIpPrefix;
     final settings = ref.watch(settingsProvider);
+    final port = widget.initialAddress?.port ?? settings.port;
     final lastDevices = ref.watch(lastDevicesProvider);
 
     return AlertDialog(
@@ -129,30 +150,33 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ToggleButtons(
-            isSelected: _selected,
-            onPressed: (int index) {
-              setState(() {
-                for (int i = 0; i < _selected.length; i++) {
-                  _selected[i] = i == index;
-                }
-                _mode = _InputMode.values[index];
-              });
-            },
-            borderRadius: BorderRadius.circular(10),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            constraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-            children: _InputMode.values.map((mode) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                child: Text(mode.label),
-              );
-            }).toList(),
-          ),
+          if (widget.initialAddress == null)
+            ToggleButtons(
+              isSelected: _selected,
+              onPressed: (int index) {
+                setState(() {
+                  for (int i = 0; i < _selected.length; i++) {
+                    _selected[i] = i == index;
+                  }
+                  _mode = _InputMode.values[index];
+                });
+              },
+              borderRadius: BorderRadius.circular(10),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              constraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+              children: _InputMode.values.map((mode) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Text(mode.label),
+                );
+              }).toList(),
+            ),
           const SizedBox(height: 15),
           TextFormField(
             key: ValueKey('input-$_mode'),
-            autofocus: true,
+            initialValue: widget.initialAddress != null && _mode == _InputMode.ip ? widget.initialAddress!.ip : null,
+            autofocus: widget.initialAddress == null,
+            readOnly: widget.initialAddress != null,
             enabled: !_fetching,
             keyboardType: _mode == _InputMode.hashtag ? TextInputType.number : TextInputType.text,
             decoration: InputDecoration(
@@ -161,8 +185,18 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
             onChanged: (s) {
               setState(() => _input = s);
             },
-            onFieldSubmitted: (s) async => _submit(localIps, settings.port),
+            onFieldSubmitted: (s) async => _submit(localIps, port),
           ),
+          if (widget.initialAddress != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(widget.initialAddress!.uri.toString()),
+            ),
+          if (_fetching && widget.initialAddress != null)
+            const Padding(
+              padding: EdgeInsets.only(top: 10),
+              child: LinearProgressIndicator(),
+            ),
           const SizedBox(height: 10),
           if (_mode == _InputMode.hashtag) ...[
             Text(
@@ -185,7 +219,7 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
                   style: const TextStyle(color: Colors.grey),
                 ),
             ],
-          ] else ...[
+          ] else if (widget.initialAddress == null) ...[
             if (lastDevices.isEmpty)
               Text(
                 '${t.general.example}: ${localIps.firstOrNull?.ipPrefix ?? '192.168.2'}.123',
@@ -203,7 +237,7 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
                             TextSpan(
                               text: device.ip,
                               style: TextStyle(color: Theme.of(context).colorScheme.primary),
-                              recognizer: TapGestureRecognizer()..onTap = () async => _submit(localIps, settings.port, device.ip),
+                              recognizer: TapGestureRecognizer()..onTap = () async => _submit(localIps, port, device.ip),
                             ),
                           ];
                         })
@@ -212,6 +246,11 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
                 ),
               ),
           ],
+          if (_error != null && widget.initialAddress != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(t.qrScanPage.connectionFailed),
+            ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(top: 10),
@@ -244,8 +283,8 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
           child: Text(t.general.cancel),
         ),
         FilledButton(
-          onPressed: _fetching ? null : () async => _submit(localIps, settings.port),
-          child: Text(t.general.confirm),
+          onPressed: _fetching ? null : () async => _submit(localIps, port),
+          child: Text(widget.initialAddress != null && _error != null ? t.qrScanPage.retryConnection : t.general.confirm),
         ),
       ],
     );

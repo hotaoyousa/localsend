@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:localsend_app/model/state/server/receive_session_state.dart';
 import 'package:localsend_app/model/state/server/receiving_file.dart';
@@ -13,18 +12,22 @@ import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/file_transfer_provider.dart';
 import 'package:localsend_app/provider/http_provider.dart';
+import 'package:localsend_app/provider/last_devices.provider.dart';
 import 'package:localsend_app/provider/logging/discovery_logs_provider.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/network/server/server_utils.dart';
+import 'package:localsend_app/provider/qr_share_provider.dart';
 import 'package:localsend_app/provider/receive_history_provider.dart';
 import 'package:localsend_app/provider/security_provider.dart';
 import 'package:localsend_app/provider/selection/selected_receiving_files_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/util/desktop_pairing_invitation.dart';
 import 'package:localsend_app/util/native/directories.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/native/tray_helper.dart';
+import 'package:localsend_app/widget/dialogs/desktop_pairing_dialog.dart';
 import 'package:localsend_app/widget/dialogs/open_file_dialog.dart';
 import 'package:localsend_isolates/isolate.dart';
 import 'package:localsend_isolates/model/device.dart';
@@ -51,23 +54,89 @@ class ReceiveController {
 
   ReceiveController(this.server);
 
+  String? _pairingSessionId;
+  DialogRoute<Device>? _pairingDialog;
+
+  Future<void> _onPairingInvitation(HttpServerPrepareUploadEvent event) async {
+    final ref = server.ref;
+    final file = event.files.length == 1 ? event.files.values.single : null;
+    final peer = file == null ? null : DesktopPairingInvitation.decode(file.preview);
+    final sessionId = event.sessionId;
+    _pairingSessionId = sessionId;
+    Device? connected;
+    try {
+      if (peer != null && ref.read(qrShareProvider).isSharing && peer.fingerprint != ref.read(deviceFullInfoProvider).fingerprint.toUpperCase()) {
+        if (checkPlatformHasTray()) await showFromTray();
+        if (_pairingSessionId != sessionId) return;
+        final context = Routerino.context;
+        if (!context.mounted) return;
+        final route = DialogRoute<Device>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => DesktopPairingDialog(phoneAlias: event.info.alias, peer: peer),
+        );
+        _pairingDialog = route;
+        connected = await Navigator.of(context).push(route);
+      }
+      if (_pairingSessionId != sessionId) return;
+      if (connected != null) {
+        ref.redux(parentIsolateProvider).dispatch(IsolateDiscoveryAddDeviceAction(device: connected));
+        ref.redux(lastDevicesProvider).dispatch(AddLastDeviceAction(connected));
+      }
+    } catch (e) {
+      connected = null;
+      _logger.warning('Computer connection invitation failed: $e');
+    } finally {
+      if (_pairingSessionId == sessionId) {
+        _pairingSessionId = null;
+        _pairingDialog = null;
+        ref
+            .redux(parentIsolateProvider)
+            .dispatch(
+              IsolateHttpServerPrepareUploadDecisionAction(
+                config: connected == null
+                    ? null
+                    : HttpServerReceiveConfig(
+                        sessionId: sessionId,
+                        fileNameMap: {},
+                        destinationDirectory: '',
+                        cacheDirectory: '',
+                        saveToGallery: false,
+                        androidSdkInt: null,
+                      ),
+              ),
+            );
+      }
+    }
+  }
+
   /// A device registered itself on this server.
   Future<void> onRegister(HttpServerRegisterEvent event) async {
-    if (event.info.fingerprint == server.ref.read(securityProvider).certificateHash) {
+    final ownFingerprint = server.ref.read(securityProvider).certificateHash;
+    if (event.info.fingerprint == ownFingerprint) {
       // "I talked to myself lol"
       return;
     }
 
     // Feed the device into the discovery store; it comes back (and is
     // registered) via the [StartDiscoveryListener] stream.
-    server.ref.redux(parentIsolateProvider).dispatch(IsolateDiscoveryAddDeviceAction(device: event.info.toDevice(event.ip, withChannel: true)));
+    final device = event.info.toDevice(event.ip, withChannel: true);
+    server.ref.redux(parentIsolateProvider).dispatch(IsolateDiscoveryAddDeviceAction(device: device));
     server.ref.notifier(discoveryLoggerProvider).addLog('[DISCOVER/TCP] Received "/register" HTTP request: ${event.info.alias} (${event.ip})');
+
+    // A peer that registers while this device shows a QR code has scanned it and
+    // can receive files, so the QR dialog offers to send files back to it.
+    server.ref.notifier(qrShareProvider).onRegister(device: device, ownFingerprint: ownFingerprint);
   }
 
   /// A sender requests to upload files.
   /// The Rust server already checked the PIN and enforces that only one
   /// session can be active at a time.
   Future<void> onPrepareUpload(HttpServerPrepareUploadEvent event) async {
+    if (event.files.values.any((file) => file.fileType == DesktopPairingInvitation.mimeType)) {
+      await _onPairingInvitation(event);
+      return;
+    }
     if (server.getStateOrNull()?.session != null) {
       // The Rust server is the authority on the single-session invariant:
       // a new request means the old session is over (e.g. finished but still
@@ -464,6 +533,13 @@ class ReceiveController {
 
   /// The sender aborted the request while the user was still deciding.
   void onPrepareUploadAborted(HttpServerPrepareUploadAbortedEvent event) {
+    if (_pairingSessionId == event.sessionId) {
+      _pairingSessionId = null;
+      final route = _pairingDialog;
+      _pairingDialog = null;
+      if (route != null && route.isActive) route.navigator?.removeRoute(route);
+      return;
+    }
     final receiveSession = server.getStateOrNull()?.session;
     if (receiveSession == null || receiveSession.sessionId != event.sessionId || receiveSession.status != SessionStatus.waiting) {
       return;

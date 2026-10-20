@@ -187,6 +187,14 @@ class SendTab extends StatelessWidget {
                     child: const Icon(Icons.ads_click),
                   ),
                 ),
+                if (checkPlatform([TargetPlatform.android, TargetPlatform.iOS]))
+                  Tooltip(
+                    message: t.qrScanPage.title,
+                    child: CustomIconButton(
+                      onPressed: () async => await vm.onTapQr(context),
+                      child: const Icon(Icons.qr_code_scanner),
+                    ),
+                  ),
                 Tooltip(
                   message: t.dialogs.favoriteDialog.title,
                   child: CustomIconButton(

@@ -6,6 +6,7 @@ import 'package:localsend_app/model/cross_file.dart';
 import 'package:localsend_app/model/state/server/web_share_state.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
+import 'package:localsend_app/provider/qr_share_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/ui/snackbar.dart';
@@ -220,15 +221,22 @@ class _WebSharePageState extends State<WebSharePage> with Refena {
                                 ),
                                 InkWell(
                                   onTap: () async {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (_) => QrDialog(
-                                        data: urlWithPin,
-                                        label: url,
-                                        listenIncomingWebDownloadRequests: _sendMode,
-                                        pin: pin,
-                                      ),
-                                    );
+                                    // While a QR code is on screen, peers that
+                                    // register themselves have scanned it.
+                                    ref.notifier(qrShareProvider).dialogOpened();
+                                    try {
+                                      await showDialog(
+                                        context: context,
+                                        builder: (_) => QrDialog(
+                                          data: urlWithPin,
+                                          label: url,
+                                          listenIncomingWebDownloadRequests: _sendMode,
+                                          pin: pin,
+                                        ),
+                                      );
+                                    } finally {
+                                      ref.notifier(qrShareProvider).dialogClosed();
+                                    }
                                   },
                                   child: const Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -237,14 +245,19 @@ class _WebSharePageState extends State<WebSharePage> with Refena {
                                 ),
                                 InkWell(
                                   onTap: () async {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (_) => ZoomDialog(
-                                        label: url,
-                                        listenIncomingWebDownloadRequests: _sendMode,
-                                        pin: pin,
-                                      ),
-                                    );
+                                    ref.notifier(qrShareProvider).dialogOpened();
+                                    try {
+                                      await showDialog(
+                                        context: context,
+                                        builder: (_) => ZoomDialog(
+                                          label: url,
+                                          listenIncomingWebDownloadRequests: _sendMode,
+                                          pin: pin,
+                                        ),
+                                      );
+                                    } finally {
+                                      ref.notifier(qrShareProvider).dialogClosed();
+                                    }
                                   },
                                   child: const Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),

@@ -42,6 +42,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
   Translations $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => Translations(meta: meta ?? this.$meta);
 
   // Translations
+  late final Translations$qrScanPage$en qrScanPage = Translations$qrScanPage$en.internal(_root);
 
   /// en: 'LocalSend'
   String get appName => 'LocalSend';
@@ -73,6 +74,50 @@ class Translations with BaseTranslations<AppLocale, Translations> {
   late final Translations$tray$en tray = Translations$tray$en.internal(_root);
   late final Translations$web$en web = Translations$web$en.internal(_root);
   late final Translations$assetPicker$en assetPicker = Translations$assetPicker$en.internal(_root);
+  late final Translations$desktopPairing$en desktopPairing = Translations$desktopPairing$en.internal(_root);
+}
+
+// Path: qrScanPage
+class Translations$qrScanPage$en {
+  Translations$qrScanPage$en.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Could not connect. Keep LocalSend open on the receiver and scan its current QR code again after changing networks or encryption settings. Check that both devices can reach each other over Wi-Fi, and check VPN, guest network isolation and firewall settings.'
+  String get connectionFailed =>
+      'Could not connect. Keep LocalSend open on the receiver and scan its current QR code again after changing networks or encryption settings. Check that both devices can reach each other over Wi-Fi, and check VPN, guest network isolation and firewall settings.';
+
+  /// en: 'Retry connection'
+  String get retryConnection => 'Retry connection';
+
+  /// en: 'Scan QR code'
+  String get title => 'Scan QR code';
+
+  /// en: 'Scan a LocalSend link QR code to send files to that device or to receive files from it.'
+  String get instruction => 'Scan a LocalSend link QR code to send files to that device or to receive files from it.';
+
+  /// en: 'This QR code does not contain a link with a valid IP address. Try another code.'
+  String get invalidCode => 'This QR code does not contain a link with a valid IP address. Try another code.';
+
+  /// en: 'Device IP address'
+  String get deviceIp => 'Device IP address';
+
+  /// en: 'Scan again'
+  String get scanAgain => 'Scan again';
+
+  /// en: 'Allow camera access in Settings to scan QR codes, then try again.'
+  String get permissionDenied => 'Allow camera access in Settings to scan QR codes, then try again.';
+
+  /// en: 'The camera could not be started. Please try again.'
+  String get cameraError => 'The camera could not be started. Please try again.';
+
+  /// en: 'Receive files'
+  String get receive => 'Receive files';
+
+  /// en: 'Waiting for "{alias}" to send files. Keep LocalSend open.'
+  String receiveWaiting({required Object alias}) => 'Waiting for "${alias}" to send files. Keep LocalSend open.';
 }
 
 // Path: general
@@ -947,6 +992,57 @@ class Translations$assetPicker$en {
   String get sUnitAssetCountLabel => 'count';
 }
 
+// Path: desktopPairing
+class Translations$desktopPairing$en {
+  Translations$desktopPairing$en.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Connect two computers'
+  String get title => 'Connect two computers';
+
+  /// en: 'Keep LocalSend open on both computers and show their receive-link QR codes. Scan computer A and computer B, then confirm the connection invitation on each computer. All three devices must be on a network where the computers can reach each other.'
+  String get instructions =>
+      'Keep LocalSend open on both computers and show their receive-link QR codes. Scan computer A and computer B, then confirm the connection invitation on each computer. All three devices must be on a network where the computers can reach each other.';
+
+  /// en: 'Computer A'
+  String get computerA => 'Computer A';
+
+  /// en: 'Computer B'
+  String get computerB => 'Computer B';
+
+  /// en: 'Scan this computer’s QR code'
+  String get notScanned => 'Scan this computer’s QR code';
+
+  /// en: 'Use this computer'
+  String get useComputer => 'Use this computer';
+
+  /// en: 'Connect'
+  String get connect => 'Connect';
+
+  /// en: 'The phone only exchanges connection information. Files transfer directly between the computers.'
+  String get directTransfer => 'The phone only exchanges connection information. Files transfer directly between the computers.';
+
+  /// en: 'Confirm the invitation on each computer. Keep their QR dialogs open.'
+  String get confirmOnComputers => 'Confirm the invitation on each computer. Keep their QR dialogs open.';
+
+  /// en: 'Connection confirmed'
+  String get connected => 'Connection confirmed';
+
+  /// en: 'Both computers are connected. Close their QR dialogs and select the other computer on the Send tab to transfer files.'
+  String get done => 'Both computers are connected. Close their QR dialogs and select the other computer on the Send tab to transfer files.';
+
+  /// en: 'Connection not completed. Check that you scanned two different computers, both run this version with their QR dialogs open, and their network allows direct connections. Then retry the unfinished side.'
+  String get failed =>
+      'Connection not completed. Check that you scanned two different computers, both run this version with their QR dialogs open, and their network allows direct connections. Then retry the unfinished side.';
+
+  /// en: '${phone} wants to connect this computer to ${peer}. Allow the direct connection?'
+  String invitation({required Object phone, required Object peer}) =>
+      '\$${phone} wants to connect this computer to \$${peer}. Allow the direct connection?';
+}
+
 // Path: receiveTab.infoBox
 class Translations$receiveTab$infoBox$en {
   Translations$receiveTab$infoBox$en.internal(this._root);
@@ -1722,6 +1818,12 @@ class Translations$dialogs$qr$en {
 
   /// en: 'QR Code'
   String get title => 'QR Code';
+
+  /// en: '"{alias}" scanned this QR code and wants to receive files.'
+  String sendRequest({required Object alias}) => '"${alias}" scanned this QR code and wants to receive files.';
+
+  /// en: 'Select files and send'
+  String get sendFiles => 'Select files and send';
 }
 
 // Path: dialogs.quickActions
