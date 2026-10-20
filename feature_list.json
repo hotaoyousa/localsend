@@ -142,6 +142,23 @@
         "2026-10-20: Android arm64 Debug APK和macOS arm64 Release DMG/ZIP已本地构建并完整性验证；macOS严格签名验证通过。实际原生应用验证四个导航入口和地址列表，真实HTTP角色邀请两次204，发送端直接打开添加文件。用户选择暂不构建Windows新版，保留旧Windows包；未上传GitHub。"
       ],
       "notes": "界面、角色逻辑和Android/macOS产物已完成；暂缺Android真机与真实三设备收件验收。Windows本次按用户选择仅保留旧包并提供新版源码/本地构建脚本。"
+    },
+    {
+      "id": "qr_polish-003",
+      "priority": 1,
+      "area": "qr_connection",
+      "title": "桌面固定两列选择与扫码发送平滑过渡",
+      "status": "in_progress",
+      "user_visible_behavior": "桌面添加文件固定文件/文件夹、文本/剪贴板两行两列；扫码发送原地连接，快速成功直接选文件，250毫秒后才显示进度。",
+      "verification": [
+        "macOS/Windows窄宽窗口固定2×2无溢出。",
+        "快速/慢速连接、失败重试、连接中退出及原发送流程回归通过。",
+        "生成并提供Android/macOS/Windows新版，验证后删除对应旧本地产物。"
+      ],
+      "evidence": [
+        "2026-10-20: ./init.sh和原扫码基线通过，完整151项Flutter测试通过，静态分析无问题；ADB无连接真机。"
+      ],
+      "notes": "三平台构建与上传正在进行；未声称完成手机真机动画或三设备文件收件验收。"
     }
   ]
 }

@@ -9,9 +9,7 @@ import 'package:localsend_app/provider/qr_share_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/util/desktop_pairing_invitation.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
-import 'package:localsend_app/util/qr_connection_info.dart';
 import 'package:localsend_app/util/ui/snackbar.dart';
-import 'package:localsend_app/widget/dialogs/address_input_dialog.dart';
 import 'package:localsend_app/widget/dialogs/qr_dialog.dart';
 import 'package:localsend_app/widget/dialogs/qr_send_request_prompt.dart';
 import 'package:localsend_app/widget/dialogs/zoom_dialog.dart';
@@ -25,12 +23,7 @@ class QrConnectionTab extends StatelessWidget {
   const QrConnectionTab();
 
   Future<void> _send(BuildContext context) async {
-    final address = await Navigator.of(context).push<QrConnectionInfo>(MaterialPageRoute(builder: (_) => const QrScanPage(mode: QrScanMode.send)));
-    if (address == null || !context.mounted) return;
-    final device = await showDialog<Device>(
-      context: context,
-      builder: (_) => AddressInputDialog(initialAddress: address),
-    );
+    final device = await Navigator.of(context).push<Device>(QrScanPage.sendRoute());
     if (device == null || !context.mounted) return;
     await sendFilesToDevice(context, device, chooseFiles: true);
   }

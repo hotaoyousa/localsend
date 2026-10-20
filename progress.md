@@ -191,3 +191,11 @@
 - 同步范围：新版扫码连接页面、自动 A/B 角色分派、文案/生成文件、对应测试、功能清单、进度记录，以及 `support/scripts/build_qr_connection_windows.ps1`。新增中文说明 `support/docs/QR_CONNECTION_WINDOWS_ZH.md`，含目标分支、依赖版本、克隆/更新命令、脚本入口和 ZIP 输出路径。
 - 目标：fork `hotaoyousa/localsend` 的 `feat/qr-device-discovery`。提交使用 skip ci，避免仅同步源码时触发已有远程 Windows 构建。安装包、缓存、独立构建副本及用户原有 AGENTS.md 修改未纳入本次提交。
 - 验证依据：本次功能构建时的完整143项 Flutter 测试、静态检查与 macOS 实际角色流程验证均已通过；此次仅补编译说明及同步源码，未重新构建安装包。Windows 脚本尚未在 Windows 主机执行。下一步在 Windows 拉取该分支，按中文说明编译并验收实际文件收件。
+
+
+### 2026-10-20 — 桌面选择排列与扫码发送过渡优化
+
+- 当前功能 qr_polish-003。桌面添加文件固定两列：文件/文件夹、文本/剪贴板，窄窗口滚动避免溢出；手机原有文件选择保持。
+- 扫码发送改为扫码页内部直接register，成功返回Device后进入原文件选择；不再弹自动IP连接框。超过250ms才显示内嵌进度，没有人为最短等待；扫码页零时长退出避免与文件选择进入动画叠加，错误留页重试/重扫，退出忽略迟到结果。
+- 修改：add_file_dialog、qr_scan_page、qr_connection_tab、send_tab_vm与对应测试。./init.sh及旧扫码基线通过；完整151项Flutter测试通过，flutter analyze无问题。布局覆盖macOS/Windows的640/1200/400宽度，连接覆盖快/慢/失败重试/连接中退出。ADB无设备，未做本轮手机真机动画验收。
+- 用户授权上传新版Windows构建。本轮提交将触发fork的Windows工作流；Android/macOS本地构建同步进行。新产物验证完成前保留旧包；用户AGENTS.md修改不纳入提交。

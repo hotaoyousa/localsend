@@ -15,7 +15,6 @@ import 'package:localsend_app/provider/network/scan_facade.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/util/qr_connection_info.dart';
 import 'package:localsend_app/widget/dialogs/add_file_dialog.dart';
 import 'package:localsend_app/widget/dialogs/address_input_dialog.dart';
 import 'package:localsend_app/widget/dialogs/favorite_dialog.dart';
@@ -94,15 +93,7 @@ final sendTabVmProvider = ViewProvider((ref) {
       }
     },
     onTapQr: (context) async {
-      final QrConnectionInfo? address = await context.push(() => const QrScanPage(mode: QrScanMode.send));
-      if (address == null || !context.mounted) {
-        return;
-      }
-
-      final device = await showDialog<Device>(
-        context: context,
-        builder: (_) => AddressInputDialog(initialAddress: address),
-      );
+      final device = await Navigator.of(context).push<Device>(QrScanPage.sendRoute());
       if (device == null || !context.mounted) {
         return;
       }

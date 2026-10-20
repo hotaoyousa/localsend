@@ -7,11 +7,13 @@ import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/provider/desktop_pairing_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/http_provider.dart';
+import 'package:localsend_app/provider/last_devices.provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/qr_share_provider.dart';
 import 'package:localsend_app/util/desktop_pairing_invitation.dart';
 import 'package:localsend_app/util/qr_connection_info.dart';
 import 'package:localsend_app/util/ui/snackbar.dart';
+import 'package:localsend_isolates/model/device.dart';
 import 'package:localsend_isolates/rust/api/cancel.dart';
 import 'package:localsend_isolates/rust/api/model.dart';
 import 'package:localsend_isolates/util/rust.dart';
@@ -40,6 +42,14 @@ class QrScanPage extends StatefulWidget {
   final QrScanMode mode;
   const QrScanPage({this.selectComputer = false, this.mode = QrScanMode.choose});
 
+  /// Close the scanner without overlapping its exit with the file picker entry.
+  static Route<Device> sendRoute() => PageRouteBuilder<Device>(
+    pageBuilder: (_, _, _) => const QrScanPage(mode: QrScanMode.send),
+    transitionDuration: const Duration(milliseconds: 200),
+    reverseTransitionDuration: Duration.zero,
+    transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
+  );
+
   @override
   State<QrScanPage> createState() => _QrScanPageState();
 }
@@ -47,11 +57,15 @@ class QrScanPage extends StatefulWidget {
 class _QrScanPageState extends State<QrScanPage> with Refena {
   QrConnectionInfo? _connection;
   bool _invalidCode = false;
+  Timer? _sendProgressTimer;
+  bool _showSendProgress = false;
+  bool _sendFailed = false;
   RsCancellationToken? _receiveToken;
 
   @override
   void dispose() {
     _receiveToken?.cancel();
+    _sendProgressTimer?.cancel();
     if (widget.mode == QrScanMode.receive) ref.notifier(qrShareProvider).resetConnection();
     super.dispose();
   }
@@ -85,7 +99,7 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
             if (widget.mode == QrScanMode.send) {
-              Navigator.of(context).pop(connection);
+              unawaited(_connectForSending(connection));
             } else {
               unawaited(_requestReceive(connection));
             }
@@ -100,9 +114,69 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
     }
   }
 
+  Future<void> _connectForSending(QrConnectionInfo connection) async {
+    final generation = _scannerGeneration;
+    _sendProgressTimer?.cancel();
+    setState(() {
+      _sendFailed = false;
+      _showSendProgress = false;
+    });
+    _sendProgressTimer = Timer(const Duration(milliseconds: 250), () {
+      if (mounted && generation == _scannerGeneration) setState(() => _showSendProgress = true);
+    });
+    try {
+      final response = await ref
+          .read(qrDiscoveryClientProvider)
+          .register(
+            protocol: connection.https ? ProtocolType.https : ProtocolType.http,
+            ip: connection.ip,
+            port: connection.port,
+            payload: ref.read(deviceFullInfoProvider).toRegisterDto(),
+          );
+      if (!mounted || generation != _scannerGeneration) return;
+      final target = response.body.toDevice(connection.ip, connection.port, connection.https);
+      ref.redux(lastDevicesProvider).dispatch(AddLastDeviceAction(target));
+      Navigator.of(context).pop(target);
+    } catch (_) {
+      if (mounted && generation == _scannerGeneration) setState(() => _sendFailed = true);
+    } finally {
+      _sendProgressTimer?.cancel();
+    }
+  }
+
+  Widget _sendConnectionView(QrConnectionInfo connection) => Center(
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_sendFailed ? Icons.error_outline : Icons.check_circle_outline, size: 64),
+          const SizedBox(height: 16),
+          Text(_sendFailed ? t.qrScanPage.connectionFailed : t.qrConnection.scanSend, textAlign: TextAlign.center),
+          if (!_sendFailed && _showSendProgress) ...[
+            const SizedBox(height: 20),
+            const LinearProgressIndicator(),
+            const SizedBox(height: 12),
+            Text(t.qrConnection.connecting),
+          ],
+          if (_sendFailed) ...[
+            const SizedBox(height: 12),
+            SelectableText(connection.uri.toString()),
+            const SizedBox(height: 20),
+            FilledButton(onPressed: () async => _connectForSending(connection), child: Text(t.qrScanPage.retryConnection)),
+            TextButton(onPressed: _scanAgain, child: Text(t.qrScanPage.scanAgain)),
+          ],
+        ],
+      ),
+    ),
+  );
+
   void _scanAgain() {
     _receiveToken?.cancel();
     _receiveToken = null;
+    _sendProgressTimer?.cancel();
+    _showSendProgress = false;
+    _sendFailed = false;
     if (widget.mode == QrScanMode.receive) ref.notifier(qrShareProvider).resetConnection();
     setState(() {
       _connection = null;
@@ -240,6 +314,8 @@ class _QrScanPageState extends State<QrScanPage> with Refena {
                   ),
                 ],
               )
+            : widget.mode == QrScanMode.send && !widget.selectComputer
+            ? _sendConnectionView(connection!)
             : Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),

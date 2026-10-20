@@ -120,6 +120,7 @@ class _RegisterClient extends Mock implements rust_http.RsHttpClient {
   rust_model.ProtocolType? protocol;
   rust_model.RegisterDto? payload;
   bool fail = false;
+  Completer<void>? gate;
   @override
   Future<rust_http.ResultWithPublicKeyRegisterResponseDto> register({
     required rust_model.ProtocolType protocol,
@@ -131,6 +132,7 @@ class _RegisterClient extends Mock implements rust_http.RsHttpClient {
     this.port = port;
     this.protocol = protocol;
     this.payload = payload;
+    await gate?.future;
     if (fail) throw Exception('Receiver unavailable');
     return const rust_http.ResultWithPublicKeyRegisterResponseDto(
       body: rust_model.RegisterResponseDto(
@@ -245,34 +247,62 @@ void main() {
     expect(tester.takeException(), isNull);
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
-  testWidgets('send-only scanner returns address without another role confirmation', (tester) async {
-    QrConnectionInfo? result;
-    await tester.pumpWidget(
-      RefenaScope(
-        child: MaterialApp(
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: TextButton(
-                onPressed: () async {
-                  result = await Navigator.of(
-                    context,
-                  ).push<QrConnectionInfo>(MaterialPageRoute(builder: (_) => const QrScanPage(mode: QrScanMode.send)));
-                },
-                child: const Text('Scan'),
+  for (final scenario in ['fast', 'slow', 'leave while connecting']) {
+    testWidgets('send scanner connects inline: $scenario', (tester) async {
+      Device? result;
+      final client = _RegisterClient();
+      if (scenario != 'fast') client.gate = Completer<void>();
+      await tester.pumpWidget(
+        RefenaScope(
+          overrides: [
+            qrDiscoveryClientProvider.overrideWithBuilder((_) => client),
+            deviceFullInfoProvider.overrideWithBuilder((_) => _localDevice),
+          ],
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () async => result = await Navigator.of(context).push<Device>(QrScanPage.sendRoute()),
+                  child: const Text('Scan'),
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.tap(find.text('Scan'));
-    await tester.pumpAndSettle();
-    scanner.detect('http://192.168.1.20:54321');
-    await tester.pumpAndSettle();
-    expect(result!.ip, '192.168.1.20');
-    expect(result!.port, 54321);
-    expect(find.byType(QrScanPage), findsNothing);
-  });
+      );
+      await tester.tap(find.text('Scan'));
+      await tester.pumpAndSettle();
+      scanner.detect('http://192.168.1.20:54321');
+      await tester.pump();
+      await tester.pump();
+      expect(find.byType(AddressInputDialog), findsNothing);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      if (scenario != 'fast') {
+        await tester.pump(const Duration(milliseconds: 249));
+        expect(find.byType(LinearProgressIndicator), findsNothing);
+        await tester.pump(const Duration(milliseconds: 1));
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+        if (scenario == 'leave while connecting') {
+          await tester.pageBack();
+          await tester.pumpAndSettle();
+        }
+        client.gate!.complete();
+      }
+      await tester.pumpAndSettle();
+      if (scenario == 'leave while connecting') {
+        expect(result, isNull);
+        expect(find.text('Scan'), findsOneWidget);
+      } else {
+        expect(result!.ip, '192.168.1.20');
+        expect(result!.port, 54321);
+        expect(result!.https, isFalse);
+        expect(result!.fingerprint, 'receiver-fingerprint');
+      }
+      expect(find.byType(QrScanPage), findsNothing);
+      expect(find.byType(AddressInputDialog), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('receive-only scanner requests sending and waits, without send button', (tester) async {
     final service = _PairingService()..failB = false;
@@ -410,8 +440,8 @@ void main() {
         expect(client.port, 54321);
         expect(client.protocol, rust_model.ProtocolType.http);
         if (scenario == 'unreachable receiver') {
-          expect(find.byType(AddressInputDialog), findsOneWidget);
-          expect(find.text(t.general.error), findsOneWidget);
+          expect(find.byType(AddressInputDialog), findsNothing);
+          expect(find.byType(QrScanPage), findsOneWidget);
           expect(find.text(t.qrScanPage.connectionFailed), findsOneWidget);
           expect(sender.sessions, 0);
           client.fail = false;
