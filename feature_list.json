@@ -167,7 +167,7 @@
       "priority": 1,
       "area": "qr_connection",
       "title": "扫码收件确认、独立自动保存与真实保存目录",
-      "status": "in_progress",
+      "status": "passing",
       "user_visible_behavior": "Android/macOS/Windows扫码连接收件默认显示接受/拒绝；设置新增独立扫码连接自动保存开关且默认关闭；保存目录显示系统实际完整路径。",
       "verification": [
         "三个目标平台默认确认、接受/拒绝与扫码自动保存开关通过回归。",
@@ -176,9 +176,11 @@
         "构建上传Android/macOS/Windows新版，验证后清理本地旧构建。"
       ],
       "evidence": [
-        "2026-10-20: ./init.sh及33项扫码基线通过，完整176项Flutter测试通过、静态分析无问题；暂无Android USB设备。"
+        "2026-10-20: ./init.sh及33项扫码基线通过，完整176项Flutter测试通过、静态分析无问题；暂无Android USB设备。",
+        "2026-10-20: Android arm64 Debug APK、macOS arm64 Release DMG/ZIP和Windows x64未签名EXE均已构建，发布 https://github.com/hotaoyousa/localsend/releases/tag/qr-receive-20261020 。Windows工作流39394781583成功（13分56秒）；四个上传工件大小与本地一致。macOS严格深度签名/DMG/ZIP/独立设置实际启动通过，APK及Windows下载ZIP完整性通过。",
+        "2026-10-20: 验证新版后删除旧本地三平台产物及重复构建缓存，可用空间增加约13.83GiB。"
       ],
-      "notes": "实现与自动化完成；三平台构建/上传进行中。真实三设备文件落盘验收仍单独待办。"
+      "notes": "本轮自动化与三平台构建交付完成；无Android USB真机，手机/Windows实际运行与三设备文件落盘仍待用户实机验收。既有三设备验收blocked状态保持。"
     }
   ]
 }

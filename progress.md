@@ -225,3 +225,20 @@
 - 修改设置存储/状态及生成映射、收件控制器、扫码页/连接页/设置页、目录provider/widget、英/简繁中文及对应测试。
 - 验证：./init.sh与33项扫码基线通过；完整176项Flutter测试通过，静态分析无问题。覆盖Android/macOS/Windows接受/拒绝、自动保存、全局开关不绕过扫码确认、不同发送者、普通传输、默认/自定义路径、设置持久化；ADB无设备。
 - 已授权生成并上传三平台新版，验证新包后删除旧本地产物。Windows使用fork既有工作流，Android/macOS本机构建；用户AGENTS.md修改不提交。
+
+
+### 2026-10-20 — 扫码收件确认与实际目录：三平台发布完成
+
+- 功能 qr_receive-004 本轮自动化/构建交付通过；源码提交 `b552ddeace482edd64e7f414bcb15c5520f48083` 已上传 fork 的 `feat/qr-device-discovery`。完整176项Flutter测试与静态分析通过；保留用户AGENTS.md修改未提交。
+- Windows工作流 https://github.com/hotaoyousa/localsend/actions/runs/39394781583 成功，Windows任务13分56秒；安装程序下载ZIP完整性通过。
+- Android arm64 Debug APK完整性通过。macOS原生资源缓存曾引用上次清理已删除的objective_c输出；重置独立副本的 app/.dart_tool/flutter_build 和根 .dart_tool/hooks_runner 后构建成功，未修改功能代码。应用ad-hoc深度签名及严格验证通过，DMG/ZIP完整性通过；临时独立配置55349端口实际启动返回协议2.2，测试实例与临时设置已移除。
+- 已发布 https://github.com/hotaoyousa/localsend/releases/tag/qr-receive-20261020 ，标签绑定功能提交b552ddea。四个工件状态uploaded、服务端大小与本地一致：APK198544739、DMG30541093、ZIP26672435、EXE18937977字节。
+- 本地可测试产物：
+  - `dist/qr-receive-20261020/LocalSend-1.18.2-qr-receive-android-arm64-debug.apk`
+  - `dist/qr-receive-20261020/LocalSend.app`
+  - `dist/qr-receive-20261020/LocalSend-1.18.2-qr-receive-macos-arm64.dmg`
+  - `dist/qr-receive-20261020/LocalSend-1.18.2-qr-receive-macos-arm64.zip`
+  - `dist/qr-receive-20261020/LocalSend-1.18.2-qr-receive-windows-x64.exe`
+- 验证新版后删除旧 `dist/qr-polish-20261020`、主工程/独立macOS副本的 app/build、本轮Kotlin缓存及成对的Flutter/native-assets派生缓存；可用空间实测增加约13.83GiB。保留新包、源码、工具链及macOS本地Swift包配置；GitHub历史Release未删除。
+- 用法：在收件端设置 → 接收打开或关闭「扫码连接自动保存」（首次默认关闭）；关闭时扫码连接的实际文件请求显示接受/拒绝，开启时自动接收明确连接的发送方。保存目录现在显示系统完整实际路径，可继续选择自定义目录或恢复默认。
+- 剩余验收：无Android USB设备，手机/Windows实机运行及真实三设备文件落盘仍需用户安装新版验证；Android为.debug包，macOS未Apple公证，Windows未签名。既有真实三设备验收项保持blocked。
